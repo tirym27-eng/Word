@@ -1,0 +1,1101 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#08090c"><title>LexiRise — слова</title>
+<style>
+:root{--bg:#08090c;--panel:#101116;--panel2:#13141b;--line:#2c2f3d;--accent:#a78bfa;--accent2:#8d6cff;--text:#f5f5f7;--muted:#9295a3;--ok:#56d69a;--bad:#ff6b7a;--glow:0 0 0 3px rgba(167,139,250,.16),0 0 20px rgba(167,139,250,.28)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:radial-gradient(900px 500px at 50% -10%,#1a1430 0,transparent 60%),var(--bg);background-attachment:fixed;color:var(--text);font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif}
+button,input{font:inherit;outline:none}button{cursor:pointer}
+.app{max-width:620px;margin:auto;min-height:100vh;padding:20px 18px 130px}
+.screen{display:none}.screen.active{display:block;animation:in .35s ease}
+@keyframes in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+header{display:flex;justify-content:space-between;align-items:center}
+.logo{font-size:21px;font-weight:800}.logo span{color:var(--accent)}
+.eyebrow{color:var(--accent);font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.8px}
+h1{font-size:32px;line-height:1.05;letter-spacing:-1.2px}h2{margin:8px 0}
+p,.note,small{color:var(--muted)}
+
+/* единый стиль окантовки: у всех граней */
+.card,.stat,.row,.answer,.feedback,.search,.levels button,.icon,.badge,.back,.primary,.more,.mode{
+ border:1.5px solid var(--line);transition:border-color .2s,box-shadow .2s,background .2s,transform .12s}
+.card{background:linear-gradient(180deg,#13141b,#0f1015);border-color:rgba(167,139,250,.38);border-radius:22px;box-shadow:0 0 22px rgba(167,139,250,.10)}
+@media (hover:hover) and (pointer:fine){.mode:hover,.card:hover,.stat:hover,.row:hover,.answer:hover:not(:disabled),.feedback:hover,.levels button:hover,.icon:hover,.back:hover,.more:hover,.search:hover{border-color:var(--accent);box-shadow:var(--glow)}}
+.mode:focus-visible,.search:focus,.card:focus-within,.levels button:focus-visible,.icon:focus-visible,.primary:focus-visible,.answer:focus-visible,.back:focus-visible,.more:focus-visible{border-color:var(--accent);box-shadow:var(--glow)}
+.mode:active,.answer:active:not(:disabled),.levels button:active,.icon:active,.back:active,.more:active{border-color:#c4b5fd;box-shadow:0 0 0 3px rgba(196,181,253,.25),0 0 24px rgba(167,139,250,.4);transform:scale(.985)}
+
+.icon{background:#111218;color:#fff;border-radius:50%;width:44px;height:44px;font-size:18px}
+.hero{padding:22px;margin-top:18px}
+.progress{height:8px;background:#252630;border:1px solid #2c2f3d;border-radius:99px;overflow:hidden}
+.progress i{display:block;height:100%;background:linear-gradient(90deg,#8d6cff,#c4b5fd);width:0;transition:.5s;box-shadow:0 0 10px rgba(167,139,250,.7)}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin:12px 0}
+.stat{padding:14px;background:#111218;border-radius:16px;border-color:rgba(167,139,250,.28)}
+.stat b{display:block;font-size:21px}.stat span{font-size:11px;color:var(--muted)}
+.primary{width:100%;padding:16px;border-radius:16px;background:linear-gradient(135deg,#8d6cff,#6948ef);border-color:#b9a6ff;color:#fff;font-weight:800;box-shadow:0 0 18px rgba(141,108,255,.35)}
+@media (hover:hover) and (pointer:fine){.primary:hover{box-shadow:0 0 0 3px rgba(167,139,250,.25),0 0 28px rgba(141,108,255,.55)}}.primary:active{transform:scale(.985)}
+.levels{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}
+.levels button{padding:9px 15px;border-radius:99px;background:#171820;color:var(--muted)}
+.levels button.active{color:#fff;border-color:var(--accent);background:#241d3a;box-shadow:var(--glow)}
+.top{display:flex;gap:10px;align-items:center;margin:18px 0}
+.back{background:#111218;color:var(--muted);border-radius:99px;padding:8px 14px}
+.session{flex:1;height:7px;background:#252630;border:1px solid #2c2f3d;border-radius:99px;overflow:hidden}
+.session i{display:block;height:100%;background:linear-gradient(90deg,#8d6cff,#c4b5fd);width:0;transition:.3s}
+.wordcard{position:relative;padding:30px 20px;text-align:center;min-height:300px;display:flex;flex-direction:column;justify-content:center}
+.badge{color:var(--muted);border-radius:99px;padding:7px 12px;font-size:12px;align-self:center;border-color:rgba(167,139,250,.5)}
+.word{font-size:44px;font-weight:850;letter-spacing:-2px;margin:25px 0 8px;word-break:break-word}
+.answers{display:grid;gap:10px;margin-top:12px}
+.answer{padding:16px;text-align:left;background:#111218;color:#fff;border-radius:16px}
+.answer.correct{border-color:var(--ok);background:#10241d;box-shadow:0 0 0 3px rgba(86,214,154,.15),0 0 20px rgba(86,214,154,.3)}
+.answer.wrong{border-color:var(--bad);background:#291318;box-shadow:0 0 0 3px rgba(255,107,122,.15),0 0 20px rgba(255,107,122,.3)}
+.feedback{margin-top:10px;padding:13px;border-radius:14px;color:#c7c8d0;background:#111218;min-height:20px}
+.feedback:empty{display:none}
+.search{width:100%;padding:15px;border-radius:16px;background:#111218;color:#fff}
+.list{display:grid;gap:9px;margin-top:13px}
+.row{display:flex;justify-content:space-between;align-items:center;padding:14px;background:#111218;border-radius:16px;border-color:rgba(167,139,250,.25)}
+.meter{width:70px;height:6px;background:#292b35;border-radius:99px;overflow:hidden;margin-top:5px}
+.meter i{display:block;height:100%;background:var(--accent)}
+.more{width:100%;margin-top:12px;padding:13px;border-radius:16px;background:#171820;color:#fff}
+
+/* круглые нижние кнопки */
+nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(620px,100%);display:flex;justify-content:center;gap:8px;padding:22px 6px calc(14px + env(safe-area-inset-bottom));background:linear-gradient(180deg,transparent,rgba(8,9,12,.9) 40%);pointer-events:none}
+nav button{pointer-events:auto;background:none;border:0;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:6px;padding:0}
+nav .ni{width:52px;height:52px;border-radius:50%;display:grid;place-items:center;background:#13141b;border:2px solid var(--line);transition:.25s}
+nav svg{width:23px;height:23px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+nav small{font-size:10px;color:inherit}
+@media (hover:hover) and (pointer:fine){nav button:hover .ni{border-color:rgba(167,139,250,.7)}}
+nav button.active{color:#fff}
+nav button.active .ni{border-color:var(--accent);background:radial-gradient(circle at 50% 30%,#2e2350,#171326);box-shadow:0 0 0 4px rgba(167,139,250,.18),0 0 24px rgba(167,139,250,.55)}
+nav button:active .ni{transform:scale(.93)}
+
+.modes{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:14px}
+.mode{padding:14px 6px;border-radius:18px;background:#111218;color:#fff;border-color:rgba(167,139,250,.3);display:flex;flex-direction:column;align-items:center;gap:4px}
+.mode b{font-size:21px}.mode span{font-size:11px;color:var(--muted)}
+.top .icon{width:38px;height:38px;font-size:16px;flex:none;border-color:var(--accent);box-shadow:var(--glow)}
+.top .icon.off{border-color:var(--line);box-shadow:none;color:#6b6e7b}
+.btnrow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.btnrow .more,.btnrow .primary{margin:0;width:100%;padding:16px}
+.search.ok{border-color:var(--ok);box-shadow:0 0 0 3px rgba(86,214,154,.15),0 0 20px rgba(86,214,154,.3)}
+.search.bad{border-color:var(--bad);box-shadow:0 0 0 3px rgba(255,107,122,.15),0 0 20px rgba(255,107,122,.3);animation:shake .35s}
+@keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.tinput{font-size:20px;text-align:center;margin-top:12px}
+.star{position:absolute;top:12px;right:12px;font-size:20px;color:#9295a3}
+.rs{width:36px;height:36px;font-size:16px;flex:none;color:#9295a3}
+.star.on,.rs.on{color:#ffd166;border-color:#ffd166;box-shadow:0 0 0 3px rgba(255,209,102,.15),0 0 18px rgba(255,209,102,.35)}
+.rowr{display:flex;align-items:center;gap:12px}
+
+.seg{display:flex;gap:8px;margin:14px 0}
+.seg button{flex:1;padding:12px;border-radius:99px;background:#171820;color:var(--muted);border:1.5px solid var(--line);transition:.2s}
+.seg button.active{color:#fff;border-color:var(--accent);background:#241d3a;box-shadow:var(--glow)}
+.tgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.tcard{padding:16px 14px;text-align:left;border-radius:18px;background:#111218;color:#fff;border:1.5px solid rgba(167,139,250,.3);display:flex;flex-direction:column;gap:6px;transition:.2s}
+.tcard .ti{font-size:26px}.tcard b{font-size:15px}.tcard small{color:var(--muted)}
+.scard{padding:16px;margin-top:12px}
+.pat{font-size:20px;font-weight:800;color:#c4b5fd;margin-bottom:4px}
+.ex{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-top:1px solid #23252f;cursor:pointer}
+.scard .more{margin-top:8px}
+.sp{font-size:16px}
+.buildline{min-height:64px;margin-top:12px;padding:10px;border:1.5px dashed rgba(167,139,250,.5);border-radius:16px;display:flex;flex-wrap:wrap;gap:8px;align-content:flex-start;background:#0f1015;transition:.2s}
+.buildline.ok{border-style:solid;border-color:var(--ok);box-shadow:0 0 0 3px rgba(86,214,154,.15),0 0 20px rgba(86,214,154,.3)}
+.buildline.bad{border-style:solid;border-color:var(--bad);box-shadow:0 0 0 3px rgba(255,107,122,.15),0 0 20px rgba(255,107,122,.3);animation:shake .35s}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;justify-content:center}
+.chip{padding:10px 14px;border-radius:99px;background:#171820;color:#fff;border:1.5px solid var(--line);transition:.15s}
+.chip:active{border-color:#c4b5fd;box-shadow:0 0 0 3px rgba(196,181,253,.25),0 0 18px rgba(167,139,250,.4);transform:scale(.96)}
+.chip.used{opacity:.22;pointer-events:none}
+.buildline .chip{border-color:rgba(167,139,250,.55);background:#1c1730}
+@media (hover:hover) and (pointer:fine){.tcard:hover,.chip:hover,.seg button:hover,.scard:hover{border-color:var(--accent);box-shadow:var(--glow)}}
+.tcard:active{border-color:#c4b5fd;box-shadow:0 0 0 3px rgba(196,181,253,.25),0 0 24px rgba(167,139,250,.4);transform:scale(.985)}
+</style></head><body>
+<div class="app">
+<header><div class="logo">Lexi<span>Rise</span></div><button class="icon" id="reset" title="Сбросить прогресс">↺</button></header>
+
+<section id="home" class="screen active">
+<div class="eyebrow">Словарный запас</div><h1>Учи слова.<br>Закрепляй навсегда.</h1><p>Только английские слова — без грамматики и лишнего. <span id="total"></span> слов в базе.</p>
+<div class="card hero"><div class="eyebrow" id="lvl">A1</div><h2 id="title">Начинаем с основы</h2><div class="progress"><i id="bar"></i></div><div class="note" id="txt" style="margin-top:8px">0 изучено</div><div class="note" id="txt2" style="margin-top:4px"></div><div class="levels" id="stages" style="margin:10px 0 0"></div>
+<div class="stats"><div class="stat"><b id="mastered">0</b><span>выучено</span></div><div class="stat"><b id="streak">0</b><span>серия дней</span></div><div class="stat"><b id="accuracy">—</b><span>точность</span></div></div>
+<button class="primary" id="start">Начать тренировку</button></div>
+<div class="modes"><button class="mode" id="mReview"><b id="cReview">0</b><span>Повторение</span></button><button class="mode" id="mMist"><b id="cMist">0</b><span>Мои ошибки</span></button><button class="mode" id="mFav"><b id="cFav">0</b><span>Мои слова ★</span></button><button class="mode" id="mType"><b>Aa</b><span>Печатать</span></button></div>
+<div class="note" id="flash" style="min-height:18px;margin-top:10px;text-align:center"></div>
+<div class="levels" id="levels"></div></section>
+
+<section id="learn" class="screen">
+<div class="top"><button class="back" id="back">‹ Назад</button><div class="session"><i id="sbar"></i></div><span class="note" id="scount"></span><button class="icon" id="snd" title="Озвучка">🔊</button></div>
+<div class="card wordcard" id="wc"><button class="icon star" id="star" title="Добавить в «Мои слова»">☆</button><div class="badge" id="badge"></div><div class="word" id="word"></div><div class="note" id="hint"></div></div>
+<div class="answers" id="answers"></div><div class="feedback" id="feedback"></div>
+</section>
+
+<section id="typing" class="screen">
+<div class="top"><button class="back" id="tback">‹ Назад</button><div class="session"><i id="tbar"></i></div><span class="note" id="tcount"></span><button class="icon" id="tsnd" title="Озвучка">🔊</button></div>
+<div class="card wordcard" style="min-height:230px"><button class="icon star" id="tstar" title="Добавить в «Мои слова»">☆</button><div class="badge" id="tbadge"></div><div class="word" id="tword"></div><div class="note" id="thint"></div></div>
+<input class="search tinput" id="tinput" placeholder="Напиши по-английски" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+<div class="btnrow"><button class="more" id="thintbtn">Подсказка</button><button class="primary" id="tcheck">Проверить</button></div>
+<div class="feedback" id="tfeedback"></div></section>
+
+<section id="library" class="screen"><div class="eyebrow">Словарь</div><h1>Все слова</h1>
+<input class="search" id="search" placeholder="Поиск English или русский…"><div class="levels" id="liblevels"></div><div class="list" id="list"></div></section>
+
+<section id="phrases" class="screen"><div class="eyebrow">Живая речь</div><h1>Фразы и структуры</h1><p>Готовые блоки, из которых собирается твоя речь. Слушай, собирай, говори вслух.</p>
+<div class="seg" id="phseg"><button data-v="topics" class="active">Темы</button><button data-v="struct">Структуры</button></div>
+<div id="phbody"></div></section>
+
+<section id="pprac" class="screen">
+<div class="top"><button class="back" id="pback">‹ Назад</button><div class="session"><i id="pbar"></i></div><span class="note" id="pcount"></span><button class="icon" id="psnd" title="Озвучка">🔊</button></div>
+<div class="card wordcard" style="min-height:200px"><div class="badge" id="pbadge"></div><div class="word" id="pmain" style="font-size:26px;letter-spacing:-.5px;line-height:1.25;margin:18px 0 8px"></div><div class="note" id="psub"></div></div>
+<div class="answers" id="pcloze"></div>
+<div id="pbuild" style="display:none"><div class="buildline" id="pline"></div><div class="chips" id="ppool"></div><button class="more" id="preset">Сбросить</button></div>
+<div class="feedback" id="pfeed"></div></section>
+
+<section id="combo" class="screen"><div class="eyebrow">Два слова — другой смысл</div><h1>Сочетания</h1><p>Фразовые глаголы и устойчивые выражения: по отдельности слова значат одно, а вместе — совсем другое.</p>
+<div class="card hero"><div class="eyebrow" id="clvl">A2</div><h2 id="ctitle"></h2><div class="progress"><i id="cprog"></i></div><div class="note" id="ctxt" style="margin-top:8px"></div><div style="height:14px"></div><button class="primary" id="cgo">Начать тренировку</button><div class="note" id="cflash" style="min-height:18px;margin-top:10px;text-align:center"></div></div>
+<div class="levels" id="clevels"></div>
+<input class="search" id="csearch" placeholder="Поиск: give up, сдаваться…"><div class="list" id="clist"></div></section>
+
+<section id="cprac" class="screen">
+<div class="top"><button class="back" id="cback">‹ Назад</button><div class="session"><i id="cbar"></i></div><span class="note" id="ccount"></span><button class="icon" id="csnd" title="Озвучка">🔊</button></div>
+<div class="card wordcard"><div class="badge" id="cbadge"></div><div class="word" id="cword" style="font-size:38px"></div><div class="note" id="chint"></div></div>
+<div class="answers" id="canswers"></div><div class="feedback" id="cfeed" style="white-space:pre-line"></div></section>
+
+<section id="progress" class="screen"><div class="eyebrow">Результат</div><h1>Твой прогресс</h1><p>Каждое слово закрепляется пятью правильными ответами.</p>
+<div class="stats"><div class="stat"><b id="pm">0</b><span>выучено</span></div><div class="stat"><b id="pt">0</b><span>в базе</span></div><div class="stat"><b id="pa">—</b><span>точность</span></div></div>
+<div class="card hero" id="lstats"></div>
+<p class="note" style="font-size:11px;margin-top:18px">Порядок слов по частотности: New General Service List (Browne, Culligan, Phillips), лицензия CC BY-SA 4.0 — newgeneralservicelist.com. Русские переводы, уровни и разбивка на части — авторские.</p></section>
+</div>
+
+<nav>
+<button class="active" data-s="home"><span class="ni"><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg></span><small>Главная</small></button>
+<button data-s="library"><span class="ni"><svg viewBox="0 0 24 24"><path d="M4 5a2 2 0 012-2h13v16H6a2 2 0 00-2 2z"/><path d="M4 21V5"/><path d="M9 8h6"/></svg></span><small>Слова</small></button>
+<button data-s="phrases"><span class="ni"><svg viewBox="0 0 24 24"><path d="M21 12a8 8 0 01-11.6 7.1L4 20l1-4.2A8 8 0 1121 12z"/><path d="M8.5 11h7"/><path d="M8.5 14h4"/></svg></span><small>Фразы</small></button>
+<button data-s="combo"><span class="ni"><svg viewBox="0 0 24 24"><circle cx="9" cy="12" r="5"/><circle cx="15" cy="12" r="5"/></svg></span><small>Сочетания</small></button>
+<button data-s="progress"><span class="ni"><svg viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg></span><small>Прогресс</small></button>
+</nav>
+<script>
+const D={
+A1:`in=в;have=иметь;you=ты / вы;he=он;for=для;they=они;we=мы;on=на;with=с;this=этот;I=я;she=она;from=из / от;say=сказать;go=идти;all=все;one=один;about=о / около;which=который;there=там;know=знать;more=больше;get=получать;who=кто;like=нравиться;when=когда;think=думать;make=делать;time=время;see=видеть;what=что;up=вверх;some=некоторые;other=другой;out=наружу;good=хороший;people=люди;year=год;take=брать;no=нет;well=хорошо (нареч.);because=потому что;very=очень;just=только что;come=приходить;work=работа;use=использовать;now=сейчас;then=тогда;also=также;into=внутрь;only=только;look=смотреть;want=хотеть;give=давать;first=первый;new=новый;way=путь;find=находить;over=над;any=любой;after=после;day=день;where=где;thing=вещь;most=наиболее;need=нуждаться;much=много (с неисчисл.);right=правильный;how=как;back=спина;even=даже;here=здесь;many=много (с исчисл.);last=последний;child=ребёнок;tell=рассказывать;really=действительно;call=звонить;before=перед;through=через;down=вниз;life=жизнь;man=мужчина;long=длинный;between=между;too=слишком;write=писать;same=одинаковый;great=великолепный;try=пробовать;number=число;both=оба;own=собственный;part=часть;help=помогать;ask=спрашивать;meet=встречаться;start=начинать;talk=разговаривать
+something=что-то;put=класть;another=ещё один;become=становиться;interest=интерес;old=старый;each=каждый;school=школа;high=высокий;next=следующий;end=конец;live=жить;why=почему;week=неделя;play=играть;home=родной дом;carrot=морковь;course=курс;house=дом;midnight=полночь;report=отчёт;seven=семь;group=группа;case=случай;woman=женщина;around=вокруг;book=книга;family=семья;four=четыре;let=позволять;keep=хранить;grandfather=дедушка;hear=слышать;every=каждый (все без исключения);biscuit=печенье;elephant=слон;leaf=лист;big=большой;pizza=пицца;set=набор;small=маленький;study=учиться;duck=утка;goat=коза;begin=начинаться;since=с тех пор как;run=бежать;under=под;few=немного;bring=приносить;hand=кисть руки;state=состояние;cucumber=огурец;fox=лиса;goodbye=до свидания;fact=факт;three=три;area=район;lion=лев;name=имя;read=читать;friend=друг;month=месяц;large=крупный;without=без;noodles=лапша;spider=паук;open=открывать;word=слово;butterfly=бабочка;build=строить;hold=держать;parents=родители;strawberry=клубника;against=против;second=секунда;beef=говядина;though=хотя;yes=да;love=любить;thirsty=испытывающий жажду;toothbrush=зубная щётка;away=вдали;butter=сливочное масло;young=молодой;close=закрывать;program=программа;buy=покупать;far=далеко;today=сегодня;hour=час;student=ученик;face=лицо;ten=десять;less=меньше;room=комната;until=до тех пор;form=форма;jam=джем;spend=тратить
+candy=конфета;head=голова;car=машина;sausage=колбаса;person=человек;fridge=холодильник;once=однажды;member=член;doll=кукла;enough=достаточно;bad=плохой;internet=интернет;night=ночь;pepper=перец;able=способный;line=линия;present=настоящее время;side=сторона;stairs=лестница;sure=уверенный;wolf=волк;least=наименьший;age=возраст;low=низкий;speak=говорить;lamp=лампа;snake=змея;parent=родитель;hard=твёрдый;local=местный;stand=стоять;hundred=сто;lemon=лимон;honey=мёд;noon=полдень;pasta=макароны;water=вода;sandwich=бутерброд;test=тест;center=центр;two=два;mother=мама;walk=ходить пешком;onion=лук;later=позже;stop=останавливаться;light=свет;tomato=помидор;pencil=карандаш;sit=сидеть;monkey=обезьяна;class=класс;town=городок;minute=минута;food=еда;frog=лягушка;shoes=обувь;nut=орех;drive=водить машину;sound=звучать;eye=глаз;rabbit=кролик;music=музыка;game=игра;hungry=голодный;juice=сок;queen=королева;wait=ждать;sofa=диван;soup=суп;zoo=зоопарк;full=полный;black=чёрный;salad=салат;thanks=спасибо;five=пять;sell=продавать;short=короткий;paper=бумага;computer=компьютер;eight=восемь;tiger=тигр;oven=духовка;film=фильм;morning=утро;nine=девять;father=отец;table=стол;bear=медведь;cut=резать;strong=сильный;rise=подниматься;girl=девочка;apple=яблоко;insect=насекомое;grape=виноград;tired=усталый;mushroom=гриб;please=пожалуйста;six=шесть;towel=полотенце;cabbage=капуста;eat=есть;phone=телефон;banana=банан;draw=рисовать;bee=пчела;white=белый;bathroom=ванная;door=дверь;soap=мыло;teacher=учитель;nice=приятный;picture=картинка;boy=мальчик;happy=счастливый;road=дорога;wish=желать;field=поле;air=воздух;save=копить;listen=слушать;wrong=неправильный;foot=ступня;lie=лгать;pick=срывать;street=улица;wife=жена;fire=огонь;poor=бедный;arm=рука;heart=сердце;fast=быстрый;miss=скучать;page=страница;drink=пить;key=ключ;plant=сажать;paint=красить;evening=вечер;son=сын;bed=кровать;yesterday=вчера;wall=стена;tomorrow=завтра;window=окно;tree=дерево;board=доска;floor=пол;sorry=извините;card=карточка;capital=столица;beautiful=красивый;television=телевизор;red=красный;husband=муж;brother=брат;sleep=спать;fish=рыба;touch=трогать;clean=чистый;fill=наполнять;star=звезда;blue=синий;box=коробка;cold=холодный;baby=малыш;sing=петь;hot=горячий;dog=собака;oil=растительное масло;dress=платье;hair=волосы;dark=тёмный;daughter=дочь;clock=часы;weekend=выходные;green=зелёный;song=песня;ring=звенеть;dead=мёртвый;screen=экран;dance=танцевать;sister=сестра;dream=мечтать;garden=сад;fix=чинить;sea=море;rich=богатый;wind=ветер;radio=радио;ride=ездить верхом;heavy=тяжёлый;chair=стул;leg=нога;sentence=предложение;dinner=ужин;slow=медленный;horse=лошадь;lift=поднимать;email=электронная почта;river=река;corner=угол;ball=мяч;island=остров;rain=дождь;mountain=гора;bag=сумка;bird=птица;earth=земля;flower=цветок;kitchen=кухня;jump=прыгать;lunch=обед;sun=солнце;stone=камень;egg=яйцо;wine=вино;camera=камера;swim=плавать;coffee=кофе;taste=пробовать на вкус;hurt=причинять боль;guest=гость;bedroom=спальня;mouth=рот;skin=кожа;finger=палец;wake=просыпаться;bright=яркий;forest=лес;bridge=мост;ice=лёд;desk=парта;empty=пустой;tea=чай;soft=мягкий;shoulder=плечо;fruit=фрукт;fat=толстый;ear=ухо;cat=кошка;kiss=целовать;weak=слабый;sad=грустный;sky=небо;kick=пинать;hat=шапка;alive=живой;milk=молоко;smell=пахнуть;knock=стучать;breakfast=завтрак;lake=озеро;yellow=жёлтый;coat=пальто;meat=мясо;king=король;shirt=рубашка;brown=коричневый;mouse=мышь;snow=снег;neck=шея;spell=писать по буквам;toy=игрушка;roof=крыша;tooth=зуб;gate=ворота;beer=пиво;cloud=облако;sink=тонуть;nose=нос;cake=торт;grass=трава;mirror=зеркало;vegetable=овощ;knee=колено;sugar=сахар;pink=розовый;shadow=тень;dirty=грязный;bread=хлеб;bath=ванна;lip=губа;pen=ручка;chicken=курица;shower=душ;cousin=двоюродный брат или сестра;salt=соль;brush=чистить щёткой;orange=апельсин;pig=свинья;shelf=полка;cow=корова;cheese=сыр;moon=луна;grandmother=бабушка;coin=монета;chocolate=шоколад;potato=картофель;stomach=живот;fence=забор;castle=замок;carpet=ковёр;uncle=дядя;rice=рис;sheep=овца;website=сайт;aunt=тётя;hello=привет`,
+A2:`mean=означать;company=компания;show=показывать;change=изменение;place=место;feel=чувствовать;still=всё ещё;problem=проблема;leave=уходить;point=указывать;country=страна;late=поздний;different=разный;world=мир;never=никогда;seem=казаться;again=снова;kind=добрый;question=вопрос;always=всегда;follow=следовать;important=важный;turn=поворачивать;early=ранний;move=двигаться;money=деньги;business=бизнес;market=рынок;pay=платить;believe=верить;job=должность;plan=планировать;happen=случаться;understand=понимать;thank=благодарить;idea=идея;reason=причина;learn=учить;city=город;often=часто;train=поезд;possible=возможный;together=вместе;price=цена;party=вечеринка;already=уже;product=продукт;lose=терять;story=история;almost=почти;whole=целый;yet=ещё;care=забота;effect=эффект;sort=сортировать;ever=когда-либо;anything=что-нибудь;fall=падать;send=отправлять;soon=скоро;watch=наблюдать;base=основа;past=прошлое;visit=посещать;grow=расти;nothing=ничего;return=возвращаться;matter=иметь значение;mind=разум;office=офис;stay=оставаться;force=сила;several=несколько;remember=помнить;bit=кусочек;real=настоящий;answer=ответ;letter=письмо;decide=принимать решение;language=язык;development=развитие;half=половина;break=ломать;clear=ясный;either=любой из двух;ago=тому назад;per=за каждый;top=вершина;among=среди;win=выигрывать;color=цвет;reach=дотягиваться;period=период;across=через (поперёк);note=заметка;history=история;along=вдоль;type=печатать на клавиатуре;political=политический;free=бесплатный
+receive=получать;sale=распродажа;further=дальше;body=тело;general=общий;appear=появляться;toward=по направлению к;team=команда;easy=лёгкий;add=добавлять;pass=передавать;everything=всё;cover=покрывать;near=рядом;human=человеческий;activity=деятельность;war=война;account=счёт в банке;shop=магазин;major=крупный;someone=кто-то;above=выше;sometimes=иногда;carry=нести;choose=выбирать;forward=вперёд;main=главный;die=умирать;maybe=может быть;else=ещё;particular=особый;join=присоединяться;difficult=трудный;action=действие;health=здоровье;step=шаг;true=верный;date=дата;practice=практиковаться;model=модель;raise=поднимать;front=передняя часть;outside=снаружи;behind=позади;site=сайт;land=земля;charge=плата;finally=наконец;sign=подписывать;travel=путешествие;embarrassed=смущённый;death=смерть;passport=паспорт;regard=считать;sour=кислый;cinema=кинотеатр;couple=пара;act=действовать;project=проект;round=круглый;list=список;sticky=липкий;wear=носить одежду;rest=отдых;kid=малыш;kill=убивать;serve=обслуживать;likely=вероятный;certainly=конечно;national=национальный;teach=преподавать;cheerful=весёлый;trade=торговать;news=новости;disappointed=разочарованный;percent=процент;focus=фокус;cashier=кассир;ambulance=скорая помощь;space=пространство;electrician=электрик;realize=осознавать;single=одинокий;Wednesday=среда;address=адрес;performance=выступление;homework=домашнее задание;waiter=официант;dive=нырять;total=общий итог;builder=строитель;tasty=вкусный;due=должный;dentist=стоматолог;supermarket=супермаркет;check=проверять;complete=полный;parking=парковка;ground=почва;animal=животное
+spoon=ложка;arrive=прибывать;exist=существовать;bicycle=велосипед;fight=драться;fine=штраф;former=бывший;fork=вилка;particularly=особенно;sport=спорт;piece=кусок;finish=заканчивать;suppose=предполагать;police=полиция;receipt=чек;store=хранить;laugh=смеяться;simply=просто;bank=банк;customs=таможня;firm=фирма;cell=клетка;dull=скучный;article=статья;attack=атаковать;surprise=сюрприз;pretty=довольно;drop=капля;bake=печь;relate=относиться;financial=финансовый;steep=крутой;Tuesday=вторник;art=искусство;pause=пауза;everyone=каждый человек;forget=забывать;worry=волноваться;summer=лето;park=парк;represent=представлять;inside=внутри;manager=руководитель;international=международный;contain=содержать;exactly=точно;worker=рабочий;press=нажимать;whatever=что бы ни;necessary=нужный;suitcase=чемодан;Sunday=воскресенье;catch=ловить;thus=таким образом;attempt=попытка;gloves=перчатки;medium=средний;Monday=понедельник;average=в среднем;stock=запас;management=управление;hit=ударять;shy=застенчивый;indeed=действительно;final=окончательный;Thursday=четверг;fit=подходить по размеру;guy=парень;size=размер;addition=добавление;station=вокзал;production=производство;contract=контракт;player=игрок;enter=входить;alone=в одиночестве;surprised=удивлённый;deadline=срок сдачи;director=директор;airport=аэропорт;clearly=ясно;race=гонка;college=колледж;argue=спорить;mechanic=механик;holiday=праздник;punish=наказывать;mark=отметка;church=церковь;machine=станок;bandage=бинт;cloudy=облачный;cent=цент;season=сезон;stuff=вещи;anyone=кто-нибудь;hotel=отель;club=клуб;below=ниже;movie=кинофильм;doctor=врач;ready=готовый;marry=жениться;strike=сильно ударять;mile=миля;seek=стремиться найти;unit=единица;hospital=больница;naked=голый;quickly=быстро;curly=кудрявый;queue=очередь;jealous=ревнивый;aim=целиться;broken=сломанный;target=мишень;pull=тянуть;socks=носки;lately=в последнее время;crowded=переполненный;bus=автобус;village=деревня;trip=короткая поездка;meeting=встреча;petrol=бензин;worried=обеспокоенный;dictionary=словарь;hobby=хобби;middle=середина;Friday=пятница;spill=проливать;subway=метро;backpack=рюкзак;bored=скучающий;task=задание;pleased=довольный;boil=кипятить;fever=жар;message=сообщение;push=толкать;excited=взволнованный;shiny=блестящий;fly=летать;birthday=день рождения;pharmacy=аптека;bitter=горький;anyway=в любом случае;visa=виза;trousers=брюки;building=здание;vitamin=витамин;basket=корзина;polite=вежливый;restaurant=ресторан;pill=таблетка;headache=головная боль;earn=зарабатывать;spicy=острый на вкус;sunny=солнечный;motorbike=мотоцикл;airplane=самолёт;obey=слушаться;Saturday=суббота;cross=пересекать;chef=шеф-повар;luggage=багаж;smile=улыбаться;umbrella=зонт;reservation=бронь;shoot=стрелять;stick=приклеивать;famous=известный;warm=тёплый;count=считать;safe=безопасный;invite=приглашать;mix=смешивать;copy=копировать;glass=стакан;remove=удалять;expensive=дорогой;deliver=доставлять;weather=погода;collect=коллекционировать;farm=ферма;tour=экскурсия;ship=корабль;cheap=дешёвый;print=печатать;reply=ответить;perfect=идеальный;dry=сухой;guide=гид;taxi=такси;feed=кормить;pain=боль;south=юг;library=библиотека;camp=лагерь;artist=художник;secretary=секретарь;cook=готовить еду;driver=водитель;cry=плакать;north=север;photo=фото;map=карта;flight=рейс;left=левый;neighbor=сосед;traffic=дорожное движение;busy=занятый;lesson=урок;funny=смешной;schedule=расписание;ticket=билет;colleague=коллега;burn=гореть;mostly=в основном;beach=пляж;boat=лодка;fresh=свежий;engineer=инженер;quiet=тихий;nurse=медсестра;winter=зима;spring=весна;cash=наличные;hardly=едва;afraid=испуганный;healthy=здоровый;blow=дуть;wash=мыть;soldier=солдат;hate=ненавидеть;usual=привычный;pack=упаковывать;museum=музей;scientist=учёный;fashion=мода;dangerous=опасный;gift=подарок;climb=взбираться;square=квадратный;gold=золотой;tough=жёсткий;tear=рвать;shake=трясти;proper=надлежащий;relax=расслабляться;tourist=турист;lawyer=юрист;cup=чашка;explore=исследовать;slowly=медленно;west=запад;brand=марка;rent=арендовать;farmer=фермер;wild=дикий;lock=запирать;bottle=бутылка;engine=двигатель;careful=осторожный;terrible=страшный;discount=скидка;disappear=исчезать;plate=тарелка;sick=больной;besides=кроме того;ancient=древний;east=восток;medicine=лекарство;shut=захлопывать;sweet=сладкий;pilot=пилот;injury=травма;angry=сердитый;truly=поистине;sharp=острый;diet=диета;boss=начальник;freeze=замерзать;lucky=удачливый;repair=ремонтировать;nearby=близлежащий;slide=скользить;split=раскалывать;swing=качаться;illness=болезнь;journalist=журналист;plain=неукрашенный;wheel=колесо;hunt=охотиться;storm=буря;upset=расстроенный;wet=мокрый;truck=грузовик;pour=лить;anger=гнев;apartment=квартира;singer=певец;awful=ужасный;nowadays=в наши дни;smooth=гладкий;exam=экзамен;loud=громкий;jacket=куртка;blind=слепой;pleasant=ласкающий слух или глаз;rough=грубый;dig=копать;wrap=заворачивать;stupid=глупый;mad=сумасшедший;electric=электрический;skirt=юбка;silent=безмолвный;joy=радость;wooden=деревянный;pretend=притворяться;shine=сиять;knife=нож;bite=кусать;hurry=спешить;raw=сырой;tent=палатка;wander=бродить;gentle=нежный;cough=кашель;ugly=уродливый;autumn=осень;lazy=ленивый`,
+B1:`while=пока;include=включать;system=система;during=в течение;however=однако;provide=обеспечивать;information=информация;order=порядок;government=правительство;service=услуга;increase=увеличивать;result=итог;example=пример;offer=предлагать услугу;lead=вести;hope=надеяться;cost=стоимость;level=уровень;experience=опыт;support=поддержка;whether=ли;quite=довольно;although=хотя;term=термин;within=в пределах;public=общественный;actually=на самом деле;rather=скорее;view=взгляд;consider=рассматривать;control=контроль;concern=беспокойство;continue=продолжать;rate=ставка;expect=ожидать;cause=причина происшествия;deal=сделка;allow=разрешать;probably=вероятно;suggest=предлагать;power=сила;value=ценность;record=запись;develop=развивать;share=делиться;figure=цифра;subject=предмет;future=будущее;involve=вовлекать;social=социальный;create=создавать;moment=момент;require=требовать;sense=чувство;perhaps=возможно;rule=правило;produce=производить;agree=соглашаться;law=закон;research=исследование;position=позиция;situation=ситуация;staff=персонал;design=проектировать;event=событие;special=особенный;condition=условие;decision=решение;certain=определённый;describe=описывать;available=доступный;especially=особенно;community=сообщество;role=роль;detail=деталь;difference=разница;customer=клиент;explain=объяснять;economic=экономический;relationship=отношения;enjoy=наслаждаться;amount=количество;improve=улучшать;organization=организация;range=диапазон;quality=качество;opportunity=возможность;therefore=поэтому;fund=фонд;industry=отрасль;education=образование;security=безопасность;benefit=польза;risk=риск;standard=стандарт;vote=голосование;stage=стадия;instead=вместо этого;usually=обычно;data=данные
+chance=шанс;accept=принимать;society=общество;technology=технология;mention=упоминать;choice=выбор;common=обычный;culture=культура;demand=спрос;material=материал;limit=предел;effort=усилие;attention=внимание;reduce=сокращать;personal=личный;patient=терпеливый;current=текущий;century=век;similar=похожий;leader=лидер;contact=контакт;prepare=готовить к чему-то;discuss=обсуждать;response=ответная реакция;voice=голос;apply=применять;president=президент;compare=сравнивать;knowledge=знания;source=источник;employee=сотрудник;manage=управлять;foreign=иностранный;recently=недавно;recent=недавний;official=официальный;private=частный;opinion=мнение;notice=замечать;wonder=недоумевать;nature=природа;structure=структура;section=раздел;region=регион;growth=рост;influence=влияние;respect=уважение;various=различный;skill=навык;simple=простой;character=характер;economy=экономика;function=функция;image=образ;behavior=поведение;population=население;fail=терпеть неудачу;environment=окружающая среда;comment=комментарий;occur=происходить;series=серия;direct=прямой;success=успех;review=обзор;depend=зависеть;recognize=узнавать;purpose=цель;department=отдел;gain=приобретать;achieve=достигать;item=предмет;prove=доказывать;wide=широкий;method=метод;analysis=анализ;election=выборы;military=армия;discussion=обсуждение;challenge=вызов;nation=нация;nearly=почти;statement=заявление;despite=несмотря на;introduce=знакомить;advantage=преимущество;ability=умение;interview=собеседование;agreement=соглашение;tax=налог;solution=решение проблемы;popular=популярный;fear=страх;serious=серьёзный;degree=степень;movement=движение;treat=лечить;loss=потеря;modern=современный;pressure=давление;treatment=лечение
+conference=конференция;supply=поставка;worth=стоимость;natural=естественный;express=выражать;attend=посещать;investment=инвестиция;score=очки;organize=организовывать;beyond=за пределами;promise=обещание;energy=энергия;trouble=неприятность;relation=отношение;file=файл;bar=бар;suffer=страдать;deep=глубокий;except=кроме;tend=иметь склонность;advance=продвигаться;network=сеть;generally=вообще;operation=операция;match=матч;avoid=избегать;seat=сиденье;throw=бросать;normal=нормальный;goal=задача;positive=положительный;option=вариант;huge=огромный;style=стиль;refer=ссылаться;quarter=четверть;successful=успешный;doubt=сомнение;competition=соревнование;theory=теория;propose=предлагать план;reference=ссылка;argument=спор;adult=взрослый человек;document=документ;pattern=узор;application=заявка;obviously=очевидно;unclear=неясный;bill=счёт в ресторане;search=искать;separate=отдельный;central=центральный;career=карьера;speech=речь;officer=офицер;throughout=на протяжении;profit=прибыль;guess=угадывать;fun=веселье;protect=защищать;resource=ресурс;science=наука;disease=заболевание;balance=баланс;damage=ущерб;basis=основа;author=автор;basic=основной;encourage=поощрять;male=мужской;operate=управлять машиной;exercise=упражнение;useful=полезный;income=доход;property=собственность;imagine=представлять себе;okay=ладно;post=пост;newspaper=газета;conclusion=вывод;perform=выполнять;professional=профессиональный;debate=дебаты;memory=память;object=объект;credit=кредит;discover=обнаруживать;afternoon=время после полудня;prefer=предпочитать;possibility=возможность;direction=направление;variety=разнообразие;daily=ежедневный;clothes=одежда;track=след;completely=полностью;female=женский;responsibility=ответственность;original=оригинальный;rock=рок;university=университет;easily=легко;agency=агентство;dollar=доллар;ahead=впереди;candidate=кандидат;weight=вес;proposal=проект предложения;conversation=разговор;pound=фунт;magazine=журнал;shape=форма;immediately=немедленно;welcome=добро пожаловать;communication=общение;agent=агент;traditional=традиционный;judge=судить;suddenly=внезапно;generation=поколение;favorite=любимый;difficulty=трудность;purchase=покупка;announce=объявлять;unless=если не;independent=независимый;recommend=рекомендовать;survey=опрос;majority=большинство;request=просьба;exchange=обмен;budget=бюджет;blood=кровь;block=блок;scene=сцена;writer=писатель;content=содержание;element=элемент;effective=эффективный;correct=правильный;medical=медицинский;admit=признавать вину;beat=победить;committee=комитет;aware=осведомлённый;advice=совет;handle=справляться;trial=судебный процесс;stress=стресс;text=текст;directly=напрямую;equipment=оборудование;otherwise=иначе;title=название;extra=дополнительный;executive=руководитель компании;sample=образец;video=видео;connection=связь;inform=информировать;straight=прямой;highly=высоко;trust=доверять;wonderful=чудесный;flat=плоский;absolutely=абсолютно;flow=течение;fair=справедливый;responsible=ответственный;collection=коллекция;hang=вешать;negative=отрицательный;band=музыкальная группа;relative=родственник;software=программное обеспечение;pair=пара предметов;double=двойной;observe=наблюдать;progress=прогресс;truth=правда;examine=осматривать;lay=класть;speed=скорость;politics=политика;display=демонстрация;transfer=переводить;slightly=слегка;intend=намереваться;user=пользователь;respond=реагировать;regular=регулярный;physical=физический;apart=врозь;suit=костюм;reveal=раскрывать;percentage=процент;peace=мир (без войны);status=статус;crime=преступление;decade=десятилетие;launch=запускать;warn=предупреждать;consumer=потребитель;favor=одолжение;partner=партнёр;spot=пятно;eventually=в конце концов;heat=жара;excite=волновать;reader=читатель;importance=важность;distance=расстояние;mistake=ошибка;ensure=гарантировать;satisfy=удовлетворять;chief=глава;cool=прохладный;expert=эксперт;wave=волна;labor=труд;surface=поверхность;excellent=отличный;edge=край;audience=аудитория;procedure=процедура;global=глобальный;struggle=борьба;advertise=рекламировать;surround=окружать;extent=степень;fully=полностью;roll=катить;reality=реальность;photograph=фотография;presence=присутствие;crowd=толпа;gas=газ;net=сеть;defense=защита;spread=распространять;nuclear=ядерный;scale=масштаб;introduction=введение;requirement=требование;senior=старший;refuse=отказываться;transport=транспорт;neither=ни тот ни другой;football=футбол;survive=выживать;solve=решать;background=происхождение;technique=приём;improvement=улучшение;tool=инструмент;smoke=дым;reaction=реакция;brain=мозг;mass=масса;contribute=вносить вклад;failure=неудача;speaker=оратор;bottom=дно;adopt=усыновлять;waste=отходы;hide=прятать;marriage=брак;meal=приём пищи;repeat=повторять;equal=равный;expression=выражение;plus=плюс;extremely=крайне;owner=владелец;commercial=коммерческий;lady=леди;duty=обязанность;strength=прочность;connect=соединять;cultural=культурный;arrange=договариваться;payment=платёж;unfortunately=к сожалению;contribution=вклад;chapter=глава;secret=секрет;apparently=по-видимому;novel=роман;union=союз;pleasure=удовольствие;suggestion=совет;gather=собирать;pop=поп-музыка;currently=в настоящее время;path=тропа;topic=тема;attract=привлекать;powerful=мощный;celebrity=знаменитость;workshop=мастерская;brave=храбрый;headline=заголовок;pity=жалость;terror=ужас;caution=осторожность;meaning=значение;shame=стыд;informal=неформальный;treasure=сокровище;unity=единство;recipe=рецепт;residence=проживание;warning=предупреждение;engineering=инженерное дело;wisdom=мудрость;suburb=пригород;training=обучение;media=СМИ;eager=нетерпеливый;dialogue=диалог;heritage=наследие;tragedy=трагедия;generous=щедрый;documentary=документальный фильм;tribe=племя;punishment=наказание;kingdom=королевство;scholarship=стипендия;steam=пар;statistics=статистика;realistic=реалистичный;reception=приём гостей;guidance=руководство;vacation=отпуск;feeling=чувство;lonely=одинокий;lifestyle=образ жизни;thought=мысль;nutrition=питание;publish=публиковать;virtue=добродетель`,
+B2:`issue=вопрос / проблема;process=процесс;remain=пребывать;policy=политика;individual=индивидуальный;approach=подход;claim=утверждать;measure=мера;evidence=доказательство;court=суд;feature=особенность;factor=фактор;affect=влиять;campaign=кампания;establish=устанавливать;determine=определять;significant=значительный;lack=нехватка;link=связывать;release=выпускать;specific=конкретный;access=доступ;identify=выявлять;indicate=указывать;potential=потенциал;strategy=стратегия;associate=ассоциировать;instance=случай;assume=предполагать;reflect=отражать;previous=предыдущий;define=давать определение;maintain=поддерживать;extend=продлевать;facility=объект инфраструктуры;legal=законный;version=версия;replace=заменять;estimate=приблизительно оценивать;appropriate=подходящий;prevent=предотвращать;administration=администрация;complex=сложный;context=контекст;conduct=проводить исследование;primary=основной;principle=принцип;appeal=привлекательность;alternative=альтернатива;attitude=отношение;overall=общий;federal=федеральный;decline=снижаться;institution=учреждение;grant=предоставлять;sector=сектор;select=отбирать;annual=ежегодный;contrast=контраст;conflict=конфликт;entire=весь;shift=сдвиг;category=категория;confirm=подтверждать;emerge=появляться;concept=концепция;reform=реформа;consequence=последствие;circumstance=обстоятельство;combine=объединять;scheme=схема;brief=краткий;demonstrate=демонстрировать;appreciate=ценить;trend=тренд;initial=начальный;critical=критический;essential=необходимый;desire=желание;promote=продвигать;crisis=кризис;settle=поселиться;aid=помощь;fan=болельщик;twice=дважды;delay=задержка;safety=безопасность;insurance=страхование;divide=делить;length=длина;investigation=расследование;package=упаковка;somewhere=где-то;expand=расширять;commit=совершать;obvious=ясный;weapon=оружие;relatively=относительно;host=хозяин;district=округ
+broad=обширный;tire=шина;spirit=дух;actual=фактический;pool=бассейн;battle=битва;tradition=традиция;award=награда;coach=тренер;experiment=эксперимент;consideration=обдумывание;strange=странный;code=код;possibly=возможно;threat=угроза;accident=несчастный случай;impossible=невозможный;revenue=выручка;enable=давать возможность;active=активный;conclude=заключать;religious=религиозный;cancer=рак;convince=склонить к мнению;vary=варьироваться;environmental=экологический;volume=объём;location=местоположение;invest=инвестировать;proceed=двигаться дальше;actor=актёр;glad=рад;tape=лента;opposite=противоположность;sum=сумма;monitor=контролировать;finance=финансы;concert=концерт;shock=шок;comfortable=удобный;carefully=внимательно;recall=вспоминать;manufacture=изготавливать;theater=театр;cycle=цикл;visitor=посетитель;freedom=свобода;construction=строительство;dear=дорогой в письме;objective=объективный;moreover=более того;onto=на поверхность;historical=исторический;oppose=противостоять;branch=ветвь;vehicle=транспортное средство;route=маршрут;belong=принадлежать;tonight=сегодня вечером;danger=опасность;army=армия;decrease=уменьшаться;council=совет;editor=редактор;normally=обычно;sight=зрение;generate=порождать;delivery=доставка;deny=отрицать;quote=цитата;basically=в основном;violence=насилие;minister=министр;mainly=главным образом;noise=шум;manner=манера;occasion=повод;familiar=знакомый;ignore=игнорировать;destroy=разрушать;affair=дело;civil=гражданский;locate=определять местоположение;citizen=гражданин;temperature=температура;domestic=внутренний;load=груз;belief=убеждение;troop=отряд;technical=технический;remind=напоминать;arrangement=договорённость;prison=тюрьма;switch=переключатель;corporate=корпоративный;fairly=довольно;wood=древесина;participate=участвовать;representative=представитель;capacity=способность
+border=граница;assessment=оценка;shoe=туфля;ought=следует;ad=реклама;fee=плата;hall=зал;regulation=регулирование;escape=убегать;studio=студия;afford=позволить себе;suspect=подозреваемый;description=описание;confidence=уверенность;industrial=промышленный;complain=жаловаться;perspective=точка зрения;arrest=арестовывать;assess=оценивать состояние;register=регистрироваться;asset=актив;signal=сигнал;relevant=относящийся к делу;leadership=руководство;commitment=обязательство;necessarily=обязательно;frame=рамка;bond=узы;hire=нанимать на работу;hole=дыра;tie=галстук;internal=внутренний;chain=цепь;literature=литература;victim=жертва;threaten=угрожать;division=отдел;secure=надёжный;amaze=поражать;device=устройство;birth=рождение;label=ярлык;root=корень;factory=фабрика;expense=расход;channel=канал;investigate=расследовать;recommendation=рекомендация;rank=ранг;typical=типичный;friendly=дружелюбный;resident=житель;provision=обеспечение;concentrate=концентрироваться;plenty=изобилие;export=экспорт;entirely=целиком;strongly=сильно;consist=состоять;graduate=выпускник;moral=нравственный;insist=настаивать;combination=сочетание;principal=директор школы;master=овладеть;definitely=определённо;session=сессия;grade=оценка;nevertheless=тем не менее;predict=предсказывать;previously=ранее;protection=защита;largely=в основном;shot=выстрел;appearance=внешность;reasonable=разумный;guarantee=гарантия;till=до;theme=тема;judgment=суждение;approve=одобрять;loan=заём;definition=определение;elect=избирать;atmosphere=атмосфера;comparison=сравнение;characteristic=характерная черта;license=лицензия;rely=полагаться;narrow=узкий;succeed=преуспевать;identity=личность;permit=позволять;seriously=всерьёз;commission=комиссия;unique=уникальный;association=ассоциация;instrument=инструмент;investor=инвестор;practical=практичный;lovely=прелестный;row=ряд;youth=молодость;fuel=топливо;expectation=ожидание;employment=занятость;celebrate=праздновать;breath=дыхание;increasingly=всё больше;import=импорт;sheet=лист бумаги;cast=бросать;conservative=консервативный;journey=поездка;opposition=оппозиция;relief=облегчение;debt=долг;honor=честь;outcome=результат;blame=винить;explanation=объяснение;arise=возникать;musical=музыкальный;recover=выздоравливать;dad=папа;stretch=растягивать;declare=объявлять официально;retire=уходить на пенсию;tiny=крошечный;suitable=годный;native=коренной;analyze=анализировать;witness=свидетель;mail=почта;researcher=исследователь;ordinary=обычный;anywhere=где угодно;mental=умственный;participant=участник;vision=видение;personality=индивидуальность;specifically=конкретно;entry=вход;fellow=парень;chemical=химический;capture=захватывать;tip=чаевые;peak=пик;chairman=председатель;proportion=пропорция;shout=кричать;yard=двор;constant=постоянный;significantly=значительно;hill=холм;considerable=немалый;instruction=инструкция;intelligence=интеллект;ideal=идеальный;folk=народ;surely=несомненно;guard=охранник;somewhat=несколько;presentation=презентация;joint=совместный;compete=соревноваться;poll=опрос;faith=вера;reduction=снижение;reserve=бронировать;complaint=жалоба;bore=наскучить;mission=миссия;somehow=каким-то образом;tone=тон;neighborhood=район;passenger=пассажир;phase=этап;thin=тонкий;rush=спешка;formal=официальный;religion=религия;employer=работодатель;reject=отвергать;latter=последний из двух;ban=запрет;steal=красть;protest=протест;index=указатель;circle=круг;helpful=готовый помочь;command=приказ;attractive=привлекательный;impression=впечатление;unable=неспособный;joke=шутка;column=колонка;electronic=электронный;impose=навязывать;criminal=преступник;properly=правильно;coast=побережье;closely=внимательно;multiple=множественный;via=через посредство;legislation=законодательство;county=округ;unlike=в отличие от;mobile=мобильный;assistant=помощник;chart=диаграмма;attach=прикреплять;everywhere=везде;advise=советовать;household=домохозяйство;acknowledge=признавать факт;reward=награда;academic=академический;voter=избиратель;meanwhile=тем временем;furthermore=кроме того;accuse=обвинять;scientific=научный;wage=заработная плата;absence=отсутствие;construct=строить;remark=замечание;professor=профессор;rare=редкий;intention=намерение;dozen=дюжина;settlement=поселение;gap=пробел;widely=широко;minimum=минимум;northern=северный;estate=имение;equally=одинаково;expose=подвергать воздействию;victory=победа;resolve=разрешать;critic=критик;variable=переменная;enormous=громадный;permanent=постоянный (бессрочный);emotion=эмоция;pursue=преследовать;tall=высокий ростом;urge=настоятельно призывать;enemy=враг;appoint=назначать;talent=талант;prior=предшествующий;priority=приоритет;online=онлайн;phrase=фраза;stable=стабильный;merely=лишь;resolution=резолюция;communicate=общаться;vast=обширный;exhibition=выставка;producer=продюсер;regional=региональный;immediate=немедленный;incident=происшествие;childhood=детство;draft=черновик;slip=поскользнуться;accompany=сопровождать;politician=политик;seed=семя;salary=зарплата;illustrate=иллюстрировать;imply=подразумевать;temporary=временный;liberal=либеральный;qualify=получать квалификацию;competitive=конкурентный;hi=привет (неформально);habit=привычка;disk=диск;core=ядро;emotional=эмоциональный;self=своё я;metal=металл;existence=существование;bone=кость;panel=панель;prime=главный;appointment=назначенная встреча;maximum=максимум;effectively=эффективно;elsewhere=в другом месте;bother=беспокоить;initiative=инициатива;gray=серый;plastic=пластик;complicate=усложнять;discipline=дисциплина;disappoint=разочаровывать;assumption=предположение;extreme=крайний;passage=проход;reputation=репутация;forth=вперёд;negotiation=переговоры;mechanism=механизм;democracy=демократия;pocket=карман;crash=авария;observation=наблюдение;concentration=концентрация;deserve=заслуживать;unusual=необычный;defend=защищаться;classic=классический;interaction=взаимодействие;collapse=рушиться;borrow=занимать в долг;fundamental=фундаментальный;dish=блюдо;abroad=за границей;soul=душа;capable=способный;defeat=поражение;perfectly=превосходно;enhance=повышать;proud=гордый;emergency=чрезвычайная ситуация;educational=образовательный;distinguish=различать;manufacturer=производитель;valuable=ценный;personally=лично;cope=совладать;approximately=приблизительно;accommodation=жильё;highlight=выделять;reporter=репортёр;climate=климат;exception=исключение;corporation=корпорация;chip=чип;winner=победитель;encounter=сталкиваться;breathe=дышать;excuse=отговорка;partly=частично;tennis=теннис;urban=городской;confuse=сбивать с толку;southern=южный;output=выпуск;beauty=красота;massive=массивный;install=устанавливать;calculate=вычислять;mathematics=математика;upper=верхний;creation=создание;occupy=занимать;outline=набросок;sufficient=достаточный;update=обновление;luck=удача;preserve=сохранять;sudden=внезапный;advertisement=реклама;consistent=последовательный;originally=изначально;aside=в сторону;comfort=комфорт;secondly=во-вторых;severe=суровый;gene=ген;prospect=виды на будущее;plot=сюжет;criteria=критерии;primarily=прежде всего;integrate=интегрировать;criticism=критика;convention=условность;bet=держать пари;retain=сохранять;sequence=последовательность;volunteer=волонтёр;rural=сельский;calm=спокойный;abandon=покидать;examination=экзамен;silence=тишина;rapidly=стремительно;efficient=эффективный;revolution=революция;delight=восторг;lean=опираться;dramatic=резкий;differ=отличаться;grateful=благодарный;protein=белок;distribute=раздавать;intellectual=интеллектуальный;crucial=решающий;unemployment=безработица;crop=урожай;minority=меньшинство;origin=источник возникновения;interpretation=толкование;gentleman=джентльмен;drama=драма;landscape=пейзаж;educate=обучать;fault=вина;exhibit=выставлять;minor=незначительный;straightforward=прямолинейный;adjacent=смежный;accumulate=накапливать;famine=голод;mild=мягкий климат;circulate=циркулировать;hazard=опасность;dose=доза;bare=голый;prohibit=запрещать;humble=скромный;municipal=муниципальный;criterion=критерий;designate=назначать на роль;heal=исцелять;mislead=вводить в заблуждение;downtown=центр города;harvest=урожай;deputy=заместитель;ambition=амбиция;lifelong=пожизненный;aspect=аспект;complement=дополнять;diminish=уменьшаться;magnitude=масштаб величины;deteriorate=ухудшаться;tolerate=терпеть;embody=воплощать;globe=земной шар;incredible=невероятный;divine=божественный;disregard=пренебрегать;fraction=доля;defensive=оборонительный;diagnose=ставить диагноз;leisure=досуг;jargon=жаргон;legitimate=законный по праву;lure=заманивать;widespread=широко распространённый;clarify=прояснять;legend=легенда;invade=вторгаться;hygiene=гигиена;inherit=наследовать;breakthrough=прорыв;obtain=получать;gradual=постепенный;reluctant=неохотный;fatal=смертельный;intent=намерение серьёзное;manipulate=манипулировать;merge=сливаться;franchise=франшиза;absorb=поглощать;ongoing=продолжающийся;enquiry=запрос;indicator=показатель;frustrate=расстраивать планы;enforcement=принуждение;liberty=свобода личности;norm=норма;eligible=имеющий право;lobby=лобби;legacy=наследство;domain=область;dynamic=динамичный;detach=отделять;intimate=близкий;marine=морской;manifestation=проявление;thorough=тщательный;authentic=аутентичный;emission=выброс;faculty=факультет;exaggerate=преувеличивать;fertile=плодородный;fierce=свирепый;interfere=вмешиваться;clue=улика;dread=страх;decorate=украшать;disability=инвалидность;reinforce=усиливать;decent=порядочный;favorable=благоприятный;doctrine=доктрина;chaos=хаос;terminate=завершать;grocery=бакалея;cultivate=культивировать;impact=влияние;valid=действительный;fiscal=налоговый;harassment=притеснение;cooperate=сотрудничать;manuscript=рукопись;destiny=судьба;gauge=измерять;cautious=рассудительно осторожный;incline=склонять;distress=страдание;passive=пассивный;hostage=заложник;interval=интервал;loyal=преданный;bold=смелый;cease=прекращать;fate=рок;execute=исполнять;delicate=деликатный;envision=предвидеть;virtual=виртуальный;illusion=иллюзия;likelihood=вероятность;drift=дрейфовать;defect=дефект;fabric=ткань;dominant=доминирующий;minimal=минимальный;instinct=инстинкт;liable=ответственный юридически;bulk=основная масса;ingredient=ингредиент;frontier=граница государства;clarity=ясность;lawsuit=судебный иск;colony=колония;identical=идентичный;accusation=обвинение;modest=скромный по размеру;intact=нетронутый;inflict=наносить;drought=засуха;genre=жанр;casual=непринуждённый;merchant=торговец;corrupt=коррумпированный;contradiction=противоречие;harsh=суровый климат;merit=достоинство;denote=обозначать;ancestor=предок;chronic=хронический;rigid=жёсткий;consent=согласие;discrimination=дискриминация;ecosystem=экосистема;ultimate=окончательный;immune=невосприимчивый;assemble=собирать воедино;epidemic=эпидемия;apology=извинение;confront=противостоять лицом к лицу;duration=продолжительность;authority=власть;erupt=извергаться;jurisdiction=юрисдикция;offset=компенсировать;neutral=нейтральный;disclose=разглашать;fraud=мошенничество;mainstream=основное течение;exile=изгнание;inability=неспособность;psychology=психология;conscious=сознательный;mourn=скорбеть;grasp=схватывать;overlook=упускать из виду;coincidence=совпадение;endure=выносить;dilemma=дилемма;lodge=проживать временно;array=набор;doubtful=сомнительный;sole=единственный;ethical=этичный;miracle=чудо;glimpse=мельком увидеть;collective=коллективный;diverse=разнообразный;prominent=выдающийся;confess=признаваться;flourish=процветать;commerce=торговля;exclusive=эксклюзивный;hierarchy=иерархия;amend=вносить поправки;dense=плотный;alliance=союз;desperate=отчаянный;transmit=транслировать;descend=спускаться;inspect=осматривать;enclose=прилагать;betray=предавать;donate=жертвовать;orient=ориентировать;landmark=достопримечательность;counterpart=аналог;grief=горе;accommodate=вмещать;fluid=жидкость`,
+C1:`engage=вовлекать в дело;whereas=тогда как;acquire=приобретать;component=компонент;notion=понятие;yield=приносить плоды;implement=внедрять;substantial=существенный;derive=выводить;achievement=достижение;negotiate=вести переговоры;dominate=господствовать;supplier=поставщик;prize=приз;typically=обычно;peer=ровесник;pension=пенсия;wing=крыло;acquisition=приобретение;laughter=смех;deeply=глубоко;recognition=признание;electricity=электричество;assistance=помощь;retirement=выход на пенсию;respectively=соответственно;variation=вариация;ultimately=в конечном счёте;proof=доказательство;soil=почва;smart=сообразительный;layer=слой;representation=представительство;preparation=подготовка;dispute=диспут;agenda=повестка дня;emphasis=акцент;edition=издание;silver=серебро;entertainment=развлечение;honest=честный;undertake=предпринимать;retail=розница;wire=провод;unlikely=маловероятный;publication=публикация;slight=лёгкий по степени;unknown=неизвестный;framework=каркас;zone=зона;restrict=ограничивать;trace=след;inch=дюйм;equivalent=эквивалент;solid=твёрдый;enterprise=предприятие;elderly=пожилой;owe=быть должным;governor=губернатор;uniform=единообразный;port=порт;pitch=игровое поле;arrival=прибытие;contemporary=современный;ease=лёгкость;specialist=специалист;assure=уверять;profile=профиль;mood=настроение;episode=эпизод;crack=трещина;numerous=многочисленный;submit=представлять на рассмотрение;symptom=симптом;virtually=практически;era=эпоха;coverage=освещение;tension=напряжение;cable=кабель;sensitive=чувствительный;nervous=нервный;input=ввод;isolate=изолировать;prisoner=заключённый;eliminate=устранять;tight=тугой;secondary=вторичный;welfare=благосостояние;recruit=набирать персонал;exclude=исключать;string=бечёвка;persuade=убеждать;inspire=вдохновлять;grand=грандиозный;hence=отсюда;crew=экипаж;phenomenon=явление;pupil=школьник;false=ложный;assist=содействовать
+restore=восстанавливать;formula=формула;alter=изменять;perceive=воспринимать;routine=распорядок;stare=пристально смотреть;anymore=уже не;hero=герой;supporter=сторонник;convert=превращать;steady=устойчивый;meter=метр;beside=рядом с;sail=плыть под парусом;disaster=катастрофа;pace=темп;heavily=сильно;devote=посвящать себя;justify=оправдывать;vital=жизненно важный;fascinate=очаровывать;external=внешний;spare=запасной;whenever=всякий раз когда;depression=депрессия;guilty=виновный;distinction=различие;satisfaction=удовлетворение;incorporate=включать в состав;sweep=подметать;obligation=долг;sir=сэр;evaluate=оценивать качество;pub=паб;perception=восприятие;naturally=естественно;currency=валюта;database=база данных;initially=сначала;territory=территория;stream=ручей;rarely=редко;height=высота;apparent=очевидный;western=западный;expansion=расширение;constantly=постоянно;muscle=мышца;scare=пугать;badly=плохо;everyday=повседневный;boundary=граница;ratio=соотношение;essay=эссе;scream=визжать;withdraw=отзывать;pollution=загрязнение;disorder=беспорядок;furniture=мебель;symbol=символ;demonstration=демонстрация;analyst=аналитик;platform=платформа;steel=сталь;transform=преобразовывать;wound=рана;restriction=ограничение;foundation=фундамент;designer=дизайнер;strain=нагрузка;innovation=инновация;album=альбом;trail=тропа в лесу;trap=ловушка;loose=свободный;extension=продление;wealth=богатство;gradually=постепенно;tank=бак;evil=зло;remarkable=замечательный;tune=мелодия;invitation=приглашение;transition=переход;bid=заявка на торгах;breed=порода;extraordinary=необычайный;brilliant=блестящий;adviser=советник;stem=стебель;reverse=обращать вспять;mode=режим;pose=позировать;adjust=корректировать;creative=творческий;poem=стихотворение;agricultural=сельскохозяйственный;competitor=конкурент;festival=фестиваль;van=фургон
+confident=уверенный в себе;planet=планета;curve=кривая;overcome=преодолевать;web=паутина;depth=глубина;entrance=вход;log=бревно;giant=великан;portion=часть;substance=вещество;extensive=обширный;interpret=толковать;independence=независимость;inner=внутренний;harm=вред;consult=консультироваться;strip=полоса;intervention=вмешательство;impress=производить впечатление;radical=радикальный;similarly=подобным образом;behave=вести себя;dimension=измерение;subsequent=последующий;infection=инфекция;efficiency=эффективность;statistic=статистический показатель;regularly=регулярно;resort=курорт;iron=железо;broadcast=вещание;membership=членство;pure=без примесей;ally=союзник;quantity=количество;bend=гнуть;mature=зрелый;briefly=коротко;alarm=тревога;disturb=беспокоить;sustain=выдерживать;flood=наводнение;poverty=бедность;crazy=безумный;cite=ссылаться на источник;newly=недавно;parallel=параллельный;gender=пол человека;sponsor=спонсор;boot=ботинок;accurate=точный;dealer=торговец;button=кнопка;burden=бремя;desert=пустыня;mate=приятель;occasionally=время от времени;shareholder=акционер;bowl=миска;discovery=открытие;resistance=сопротивление;frequency=частота;criticize=критиковать;tap=кран;philosophy=философия;attribute=приписывать;apologize=извиняться;approval=одобрение;grab=схватить;entitle=давать право;lend=одалживать;involvement=вовлечённость;exposure=воздействие;conventional=общепринятый;digital=цифровой;translate=переводить текст;edit=редактировать;formation=формирование;deposit=депозит;advocate=отстаивать;establishment=учреждение;summary=резюме;recovery=выздоровление;seal=печать;tube=труба;tower=башня;characterize=характеризовать;specify=уточнять;exact=точный;spin=вращать;operator=оператор;infant=младенец;drag=тащить;mount=взбираться;anticipate=предвидеть;dependent=зависимый;specialize=специализироваться;angle=угол;anxiety=тревога;virus=вирус;precisely=именно;rival=соперник;detect=замечать;teenager=подросток;admire=восхищаться;moderate=умеренный;surgery=хирургия;musician=музыкант;significance=значимость;illegal=незаконный;charity=благотворительность;universal=универсальный;constitute=составлять;adequate=достаточный;consultant=консультант;historian=историк;visual=визуальный;keen=увлечённый;ethnic=этнический;twin=близнец;clinical=клинический;eastern=восточный;forecast=прогноз;segment=сегмент;custom=обычай;adapt=приспосабливаться;sand=песок;cap=кепка;prompt=оперативный;charm=обаяние;react=реагировать;lecture=лекция;venture=рискованное предприятие;compound=соединение;rescue=спасать;mess=беспорядок;preference=предпочтение;comprehensive=всесторонний;incentive=стимул;league=лига;dialog=диалог;cream=сливки;rapid=стремительный;cancel=отменять;regret=сожалеть;dismiss=увольнять;margin=запас;beneath=под;opponent=противник;resist=сопротивляться;capability=возможности;absolute=абсолютный;correspond=соответствовать;stroke=инсульт;dare=осмеливаться;barrier=барьер;rid=избавить;divorce=развод;ruin=руины;bury=хоронить;counsel=консультация;tendency=тенденция;frequent=частый;motor=мотор;survival=выживание;counter=прилавок;possess=владеть;permission=разрешение;valley=долина;float=держаться на воде;visible=видимый;impressive=впечатляющий;evolution=эволюция;awareness=осознанность;violent=жестокий;architecture=архитектура;acceptable=приемлемый;journal=научный журнал;coal=уголь;measurement=измерение;random=случайный;successfully=успешно;depress=угнетать;illustration=иллюстрация;burst=лопаться;privilege=привилегия;buyer=покупатель;mutual=взаимный;rail=рельс;motivate=мотивировать;laboratory=лаборатория;mortgage=ипотека;promotion=повышение;passion=страсть;champion=чемпион;fulfill=выполнять обещание;dust=пыль;dedicate=посвящать;roughly=примерно;province=провинция;march=маршировать;compromise=компромисс;accomplish=выполнять;weakness=слабость;announcement=объявление;glance=беглый взгляд;opera=опера;contest=конкурс;embarrass=смущать;gallery=галерея;genetic=генетический;aggressive=агрессивный;chest=грудь;format=формат;literary=литературный;govern=управлять страной;embrace=охотно принимать;praise=хвалить;pump=насос;publisher=издатель;celebration=празднование;golf=гольф;compensation=возмещение;classical=классический;weigh=весить;versus=против;deficit=дефицит;modify=модифицировать;flash=вспышка;friendship=дружба;profession=профессия;literally=буквально;equation=уравнение;gesture=жест;entertain=развлекать;fantastic=фантастический;assign=поручать;inflation=инфляция;historic=исторически значимый;injure=ранить;remote=удалённый;therapy=терапия;twist=скручивать;personnel=персонал;imagination=воображение;disagree=не соглашаться;throat=горло;insight=глубокое понимание;tackle=браться за решение;forever=навсегда;exceed=превышать;expenditure=затраты;reliable=надёжный;gear=снаряжение;click=щёлкать;poet=поэт;fortune=богатство и удача;ceremony=церемония;pile=куча;mixture=смесь;automatically=автоматически;scholar=учёный;psychological=психологический;dramatically=резко;stake=ставка;creature=существо;partnership=партнёрство;participation=участие;clause=пункт договора;penalty=пенальти;chamber=палата;fancy=вычурный;poetry=поэзия;chat=болтать;evolve=эволюционировать;sake=ради;boost=повышать;tail=хвост;possession=владение;curious=любопытный;boom=бум;tale=сказка;democratic=демократический;maintenance=обслуживание;consequently=следовательно;pot=кастрюля;strengthen=укреплять;constraint=ограничение;fold=складывать;bin=мусорное ведро;undergo=проходить через;potentially=потенциально;scope=масштаб;diversity=многообразие;allege=утверждать без доказательств;pride=гордость;intense=интенсивный;inquiry=расследование;resign=уйти в отставку;craft=ремесло;strict=строгий;concrete=бетон;shell=ракушка;distinct=отчётливый;humor=юмор;indication=признак;stability=стабильность;wise=мудрый;neglect=пренебрегать;compose=сочинять;jail=тюрьма;shelter=убежище;mere=всего лишь;carbon=углерод;regulate=регулировать;trigger=запускать;pipe=труба для воды;destruction=разрушение;guitar=гитара;flag=флаг;piano=пианино;magic=магия;mystery=тайна;ski=лыжи;whisper=шептать;rear=задний;menu=меню;species=биологический вид;presumably=предположительно;airline=авиакомпания;amendment=поправка;jury=присяжные;cooperation=сотрудничество;civilian=штатский;composition=состав;regardless=независимо от;scan=сканировать;bunch=связка;greet=приветствовать;hopefully=будем надеяться;sanction=санкция;trick=трюк;paragraph=абзац;maker=создатель;stimulate=стимулировать;belt=ремень;narrative=повествование;tissue=ткань организма;barely=едва;invent=изобретать;tourism=туризм;pro=профессионал;stair=ступенька;hesitate=колебаться;motivation=мотивация;romantic=романтичный;firmly=твёрдо;interior=внутренняя часть;nowhere=нигде;pray=молиться;championship=чемпионат;servant=слуга;immigrant=иммигрант;excess=излишек;complexity=сложность;liability=юридическая ответственность;surprisingly=удивительно;extract=извлекать;implementation=внедрение;bias=предвзятость;differently=по-другому;catalog=каталог;continuous=непрерывный;stamp=почтовая марка;guideline=руководящий принцип;envelope=конверт;biological=биологический;consume=потреблять;luxury=роскошь;weekly=еженедельный;wherever=где бы ни;printer=принтер;firstly=во-первых;anxious=тревожный;adventure=приключение;exhaust=истощать;attraction=достопримечательность;ocean=океан;quietly=тихо;veteran=ветеран;reflection=отражение;nerve=нерв;determination=решимость;altogether=в целом;fiction=вымысел;cluster=скопление;confusion=путаница;logic=логика;controversial=спорный;grammar=грамматика;revise=пересматривать;hint=намёк;hook=крючок;bell=колокольчик;liquid=жидкость;panic=паника;slope=склон;happiness=счастье;genuine=подлинный;vessel=сосуд;verb=глагол;reckon=полагать;transportation=перевозки;harbor=гавань;comedy=комедия;chase=преследовать;storage=хранение;universe=вселенная;lover=любитель;rat=крыса;portrait=портрет;innocent=невиновный;substitute=замена;supplement=дополнение;adjustment=корректировка;reasonably=разумно;filter=фильтр;flexible=гибкий;abstract=абстрактный;distant=далёкий;stranger=незнакомец;shade=тень;grain=зерно;summarize=резюмировать;leap=прыжок;snap=щёлкнуть;probability=вероятность;leather=кожа как материал;uncertainty=неопределённость;swear=клясться;refugee=беженец;shore=берег;monthly=ежемесячный;comprise=состоять из;stir=помешивать;excitement=волнение;sigh=вздох;experimental=экспериментальный;slice=ломтик;empire=империя;subsequently=впоследствии;attendance=посещаемость;ownership=право собственности;qualification=квалификация;suspend=приостанавливать;functional=функциональный;voluntary=добровольный;pale=бледный;stain=пятно от грязи;athlete=спортсмен;organic=органический;tongue=язык во рту;server=сервер;structural=структурный;fool=дурак;alongside=рядом с;unite=объединять;gently=нежно;compute=вычислять;wipe=вытирать;gaze=пристальный взгляд;fade=блёкнуть;hypothesis=гипотеза;royal=королевский;theoretical=теоретический;curtain=занавеска;mayor=мэр;darkness=темнота;tournament=турнир;registration=регистрация;fragment=фрагмент;listener=слушатель;immigration=иммиграция;tender=нежный;density=плотность;module=модуль;faithfully=верно;cheek=щека;attachment=привязанность;holder=держатель;solar=солнечный;grin=ухмылка;rose=роза;noun=существительное;fortunate=удачливый;alright=в порядке;hunger=голод;insure=страховать;ashamed=пристыженный;found=основывать;blog=блог;thirst=жажда;censor=подвергать цензуре;opt=делать выбор;irrelevant=нерелевантный;controversy=спор;integrity=целостность;viable=жизнеспособный;adhere=придерживаться;adverse=неблагоприятный;divert=отвлекать;hostile=враждебный;albeit=хотя и;alleviate=облегчать боль;prestigious=престижный;analogy=аналогия;implicit=подразумеваемый;diverge=расходиться;anecdote=забавный случай;conservation=охрана природы;infer=делать вывод;unprecedented=беспрецедентный;competent=компетентный;facilitate=облегчать;inevitable=неизбежный;compatible=совместимый;predecessor=предшественник;aftermath=последствия катастрофы;compile=составлять;thrive=процветать;backlash=резкая ответная реакция;distort=искажать;comply=подчиняться;covert=скрытый;mitigate=смягчать;vague=расплывчатый;breach=нарушение;trivial=незначительный;contradict=противоречить;verify=проверять;autonomy=автономия;compliance=соблюдение норм;coherent=связный;deficiency=недостаток;allocate=распределять;credible=заслуживающий доверия;discard=выбрасывать;initiate=инициировать;empirical=эмпирический;bleak=безрадостный;confine=заключать в пределы;attain=добиваться;articulate=чётко выражать;devastate=опустошать;encompass=охватывать;abundant=богатый запасами;contemplate=размышлять;definitive=окончательный;grim=мрачный;deliberate=преднамеренный;consecutive=следующий подряд;cynical=циничный;accountable=подотчётный;coincide=совпадать;delegate=делегировать;brink=грань;boast=хвастаться;collaborate=работать совместно;commodity=товар;concise=краткий;decay=разложение;sophisticated=изощрённый;validate=признавать действительным;assert=настаивать на своём;abrupt=внезапно резкий;condemn=осуждать;endorse=одобрять;concession=уступка;disposal=утилизация;precedent=прецедент;enforce=обеспечивать соблюдение;intervene=вступаться;catalyst=катализатор;conform=соответствовать;immense=необъятный;consensus=консенсус;disrupt=нарушать ход;disguise=маскировать;bribe=взятка;dedicated=преданный делу;acclaim=признание заслуг;manifest=проявлять;depict=изображать;convey=передавать;concede=уступать;compassion=сострадание;obstacle=препятствие;fragile=хрупкий;conceive=задумывать;compelling=убедительный;contempt=презрение;defer=откладывать;conceal=скрывать;consolidate=укреплять и объединять;versatile=универсальный;constituent=избиратель;decisive=решительный;subtle=едва уловимый;mandatory=обязательный;integral=неотъемлемый;ambiguous=неоднозначный;feasible=осуществимый;blunt=резкий;outlook=перспектива;abolish=упразднять;explicit=явный;erode=разъедать;vulnerable=уязвимый;critique=критический разбор;absurd=абсурдный;bureaucracy=бюрократия;prioritize=расставлять приоритеты;commence=начинаться;compensate=компенсировать;remedy=средство от недуга;collateral=залог;entail=влечь за собой;devise=разрабатывать;chronicle=хроника;diligent=усердный;bolster=укреплять;cohesion=сплочённость;rationale=обоснование;correlate=коррелировать;dispatch=отправлять;candid=откровенный;commemorate=отмечать память;accentuate=подчёркивать;adversity=невзгоды;robust=крепкий;tangible=осязаемый;blur=размывать;exploit=эксплуатировать;inquire=осведомляться;preliminary=предварительный;audit=аудит;persistent=настойчивый`,
+C2:`implication=следствие;premise=предпосылка;incessant=непрерывный;bequeath=завещать;stoic=невозмутимый;grandiose=грандиозный;fervent=страстный;flippant=несерьёзный;aggregate=совокупность;allusion=отсылка;conspicuous=заметный;cryptic=загадочный;apathy=апатия;undermine=подрывать;hyperbole=гипербола;scrupulous=добросовестный;squander=растрачивать;derivative=вторичный;dispassionate=бесстрастный;malleable=податливый;compendium=сборник;callous=чёрствый;benign=доброкачественный;myriad=несметное множество;dogged=упорный;extol=превозносить;daunting=пугающий;pertinent=уместный;epitome=воплощение;arcane=тайный;eclectic=эклектичный;ineffable=невыразимый;censure=порицание;blatant=вопиющий;elucidate=разъяснять;abstain=воздерживаться от голосования;paradox=парадокс;dichotomy=дихотомия;enigmatic=загадочный по виду;oblivious=не замечающий;coalesce=сливаться;pragmatic=прагматичный;ardent=пылкий;decorum=приличие;arbitrary=произвольный;fallacious=ошибочный;withstand=выдерживать;prodigious=колоссальный;deride=высмеивать;lament=оплакивать;coerce=принуждать;inundate=заваливать;efficacy=действенность;tenuous=шаткий;intrinsic=внутренне присущий;deference=почтение;glean=собирать по крупицам;audacious=дерзкий;hegemony=гегемония;divest=лишать прав;redundant=избыточный;impeccable=безупречный;inherent=присущий;dubious=сомнительный;tenacious=цепкий;eschew=избегать;penchant=пристрастие;ameliorate=улучшать положение;nuanced=имеющий тонкие оттенки;clandestine=подпольный;insurmountable=непреодолимый;plausible=правдоподобный;wane=убывать;frivolous=легкомысленный;belligerent=воинственный;exhort=призывать;colloquial=разговорный;conundrum=головоломка;exacerbate=усугублять;ostentatious=показной;euphemism=эвфемизм;precipitate=ускорять событие;commensurate=соразмерный;aloof=отстранённый;condone=попустительствовать;circumvent=обходить;expedient=целесообразный;copious=изобильный;garrulous=словоохотливый;concomitant=сопутствующий;furtive=украдкой;prevalent=распространённый;paradigm=парадигма;embellish=приукрашивать;endemic=эндемичный;idiosyncrasy=причуда;adept=опытный мастер;assiduous=прилежный;emulate=подражать;repercussion=отголосок последствий;delineate=очерчивать;equivocal=двусмысленный;attenuate=ослаблять;spurious=ложный;ambiguity=неоднозначность;substantiate=подтверждать доказательствами;effusive=несдержанно восторженный;cadence=ритм;capricious=капризный;discourse=дискурс;elaborate=детально разработанный;zealous=ревностный;staunch=стойкий в убеждениях;adamant=непреклонный в мнении;draconian=драконовский;archaic=архаичный;perfunctory=формальный;superfluous=лишний;proponent=сторонник;tacit=негласный;equanimity=невозмутимость;trepidation=трепет;lucid=ясный по смыслу;empathy=сопереживание;profound=глубокий по смыслу;relentless=неослабный;reticent=сдержанный;salient=ключевой;fortuitous=счастливо случайный;pernicious=губительный;contentious=вызывающий споры;forlorn=покинутый;extant=сохранившийся;egregious=из ряда вон плохой;pedantic=педантичный;utilize=использовать;ambivalent=двойственный;ephemeral=быстротечный;boon=благо;cursory=беглый;accolade=высокая похвала;aesthetic=эстетический;discrepancy=расхождение;sporadic=эпизодический;serendipity=счастливая случайность;nostalgia=ностальгия;propensity=предрасположенность;digress=отклоняться от темы;vindicate=реабилитировать;convoluted=запутанный;forestall=предвосхищать;gregarious=общительный;deleterious=пагубный;obfuscate=запутывать;banal=банальный;indigenous=коренной;disingenuous=неискренний;elusive=неуловимый;meticulous=скрупулёзный;scrutinize=тщательно изучать;anomaly=аномалия;debacle=крах;magnanimous=великодушный;erudite=эрудированный;felicitous=удачный;convergence=сближение;complicity=соучастие`
+};
+const PD=`@hello|👋|Знакомство|A1
+Hi, nice to meet you.=Привет, приятно познакомиться.;My name is Alex.=Меня зовут Алекс.;What's your name?=Как тебя зовут?;Where are you from?=Откуда ты?;I'm from Russia.=Я из России.;How are you today?=Как ты сегодня?;I'm fine, thanks. And you?=Хорошо, спасибо. А ты?;What do you do?=Чем ты занимаешься?;I work as a designer.=Я работаю дизайнером.;I'm learning English.=Я учу английский.;How old are you?=Сколько тебе лет?;Do you speak English?=Ты говоришь по-английски?;Let me introduce my friend.=Позволь представить моего друга.;It was nice talking to you.=Было приятно с тобой поговорить.;See you later!=Увидимся позже!;Have a great day!=Хорошего дня!
+@polite|🙏|Вежливость и просьбы|A1
+Excuse me, can I ask a question?=Извините, можно задать вопрос?;Could you help me, please?=Не могли бы вы мне помочь?;Thank you very much.=Большое спасибо.;I'm sorry for being late.=Извините за опоздание.;No problem, don't worry.=Без проблем, не беспокойся.;Can you repeat that, please?=Можете повторить, пожалуйста?;Could you speak more slowly?=Не могли бы вы говорить медленнее?;Sorry, I didn't catch that.=Простите, я не расслышал.;Would you mind opening the window?=Вы не против открыть окно?;After you.=После вас.;Just a moment, please.=Одну минуточку, пожалуйста.;That's very kind of you.=Это очень мило с вашей стороны.;I really appreciate your help.=Я очень ценю вашу помощь.
+@cafe|☕|Кафе и рестораны|A2
+Can I see the menu, please?=Можно посмотреть меню, пожалуйста?;I'd like a coffee with milk.=Я бы хотел кофе с молоком.;What do you recommend?=Что вы посоветуете?;I'll have the chicken soup.=Я возьму куриный суп.;Is this dish spicy?=Это блюдо острое?;Could we have the bill, please?=Можно счёт, пожалуйста?;Can I pay by card?=Можно оплатить картой?;Is service included?=Обслуживание включено?;We'd like a table for two.=Нам нужен столик на двоих.;Do you have vegetarian options?=У вас есть вегетарианские блюда?;Could I have some water, please?=Можно мне воды, пожалуйста?;This is delicious!=Очень вкусно!;Keep the change.=Сдачи не надо.;Can we sit by the window?=Можно сесть у окна?
+@shop|🛍|Магазин|A2
+How much is this?=Сколько это стоит?;Do you have this in a bigger size?=Есть ли это в большем размере?;Can I try it on?=Можно примерить?;Where is the fitting room?=Где примерочная?;It's too expensive for me.=Это слишком дорого для меня.;Do you have anything cheaper?=Есть что-нибудь подешевле?;I'm just looking, thanks.=Я просто смотрю, спасибо.;I'll take it.=Я это возьму.;Can I get a discount?=Можно скидку?;Do you accept credit cards?=Вы принимаете кредитные карты?;Could I have a bag, please?=Можно пакет, пожалуйста?;Can I return this?=Можно это вернуть?;Where can I find the milk?=Где найти молоко?;Do you have this in another color?=Есть другой цвет?;I'd like a refund.=Я хочу вернуть деньги.
+@travel|✈️|Путешествия|A2
+Where is the nearest station?=Где ближайшая станция?;How do I get to the airport?=Как добраться до аэропорта?;One ticket to London, please.=Один билет до Лондона, пожалуйста.;What time does the train leave?=Во сколько отправляется поезд?;Is this seat taken?=Это место занято?;My flight is delayed.=Мой рейс задержан.;Where is the baggage claim?=Где выдача багажа?;I've lost my passport.=Я потерял паспорт.;Can you show me on the map?=Можете показать на карте?;How far is it from here?=Как далеко это отсюда?;Turn left at the corner.=Поверните налево на углу.;It's a ten-minute walk.=Это десять минут пешком.;Does this bus go to the center?=Этот автобус идёт в центр?;I'm here on vacation.=Я здесь в отпуске.;Could you call a taxi for me?=Не могли бы вы вызвать мне такси?
+@hotel|🏨|Отель|A2
+I have a reservation under Smith.=У меня бронь на фамилию Смит.;I'd like to check in.=Я хотел бы заселиться.;What time is check-out?=Во сколько выселение?;Is breakfast included?=Завтрак включён?;Could you give me a wake-up call at seven?=Разбудите меня в семь, пожалуйста.;The air conditioning doesn't work.=Кондиционер не работает.;Can I have an extra towel?=Можно ещё одно полотенце?;What's the Wi-Fi password?=Какой пароль от Wi-Fi?;Could you store my luggage?=Можете подержать мой багаж?;I'd like a room with a view.=Я хотел бы номер с видом.;How much is it per night?=Сколько стоит за ночь?;Could I have a late check-out?=Можно поздно выселиться?
+@understand|🗣|Если не понял|A2
+I don't understand.=Я не понимаю.;What does this word mean?=Что значит это слово?;How do you say this in English?=Как это сказать по-английски?;Could you explain that again?=Можете объяснить ещё раз?;I'm not sure I understand.=Я не уверен, что понимаю.;What do you mean by that?=Что вы имеете в виду?;Can you spell it, please?=Можете произнести по буквам?;Sorry, could you say that again?=Простите, повторите ещё раз?;I'm still learning English.=Я ещё учу английский.;Could you write it down?=Можете записать это?;Do you mean this one?=Вы имеете в виду это?;Let me think for a second.=Дай мне секунду подумать.
+@work|💼|Работа и учёба|B1
+I'm working on a new project.=Я работаю над новым проектом.;Can we schedule a meeting?=Можем назначить встречу?;I'll send you the report by Friday.=Я пришлю тебе отчёт к пятнице.;I'm in charge of marketing.=Я отвечаю за маркетинг.;Let's go over the details.=Давайте разберём детали.;I need more time to finish this.=Мне нужно больше времени, чтобы это закончить.;Could you give me some feedback?=Не могли бы вы дать мне обратную связь?;We're running out of time.=У нас заканчивается время.;I'll keep you updated.=Я буду держать вас в курсе.;I'm looking forward to working with you.=Жду с нетерпением работы с вами.;That's not my area of expertise.=Это не моя сфера.;Let's focus on the main points.=Давайте сосредоточимся на главном.;I have an exam next week.=У меня экзамен на следующей неделе.;I'm taking a course in design.=Я хожу на курс по дизайну.
+@opinion|💬|Мнение и согласие|B1
+In my opinion, it's a good idea.=По-моему, это хорошая идея.;I totally agree with you.=Я полностью с вами согласен.;I see your point, but I disagree.=Я понимаю вашу мысль, но не согласен.;That makes sense.=В этом есть смысл.;I'm not so sure about that.=Я не так уверен в этом.;It depends on the situation.=Это зависит от ситуации.;As far as I know, it's true.=Насколько я знаю, это правда.;I think we should try it.=Я думаю, нам стоит попробовать.;Personally, I prefer the first option.=Лично я предпочитаю первый вариант.;That's exactly what I was thinking.=Именно это я и думал.;You have a good point.=Вы правы, это хороший довод.;It doesn't matter to me.=Мне всё равно.;Let's agree to disagree.=Давайте останемся каждый при своём мнении.
+@plans|📅|Планы и встречи|B1
+What are you doing this weekend?=Чем занимаешься на выходных?;Are you free tomorrow evening?=Ты свободен завтра вечером?;Let's meet at six o'clock.=Давай встретимся в шесть.;I'm going to visit my parents.=Я собираюсь навестить родителей.;I can't make it today.=Я не смогу сегодня.;How about next Monday?=Как насчёт следующего понедельника?;Let's keep in touch.=Давай поддерживать связь.;I'll be there in ten minutes.=Я буду через десять минут.;Sorry, I'm running late.=Извини, я опаздываю.;Shall we go together?=Пойдём вместе?;I'm thinking of changing my job.=Я думаю сменить работу.;Can we reschedule for Thursday?=Можем перенести на четверг?;It's my treat.=Я угощаю.;I'm looking forward to the trip.=Жду поездку с нетерпением.
+@health|🩺|Здоровье и помощь|B1
+I don't feel well.=Мне нехорошо.;I have a headache.=У меня болит голова.;I need to see a doctor.=Мне нужно к врачу.;Where is the nearest pharmacy?=Где ближайшая аптека?;Please call an ambulance.=Пожалуйста, вызовите скорую.;It hurts here.=Здесь болит.;I've had a fever since yesterday.=У меня жар со вчерашнего дня.;Do I need a prescription?=Мне нужен рецепт?;How often should I take this?=Как часто это принимать?;Can you help me, it's an emergency!=Помогите, это срочно!;I think I've lost my wallet.=Кажется, я потерял кошелёк.;Could you call the police?=Вы не могли бы вызвать полицию?;I'm feeling much better now.=Мне сейчас намного лучше.
+@talk|🤝|Поддержание разговора|B1
+By the way, did you hear the news?=Кстати, ты слышал новости?;To be honest, I was surprised.=Честно говоря, я удивился.;Actually, I changed my mind.=Вообще-то, я передумал.;You know what? I'm hungry.=Знаешь что? Я голоден.;That reminds me of something.=Это напоминает мне кое-что.;Anyway, let's get back to work.=Ладно, вернёмся к работе.;What a coincidence!=Какое совпадение!;No way! Really?=Не может быть! Правда?;I'm glad to hear that.=Рад это слышать.;Sorry to hear that.=Жаль это слышать.;Tell me more about it.=Расскажи об этом подробнее.;It's been a long time!=Давно не виделись!;What have you been up to?=Чем ты занимался?;Take care of yourself.=Береги себя.
+@phone|📞|Телефон и сообщения|B1
+Hello, this is Anna speaking.=Алло, это говорит Анна.;Can I speak to Mr. Brown?=Можно поговорить с мистером Брауном?;I'll call you back later.=Я перезвоню тебе позже.;Could you leave a message?=Можете оставить сообщение?;The line is busy.=Линия занята.;I can't hear you well.=Я вас плохо слышу.;Let me text you the address.=Я напишу тебе адрес сообщением.;I'll send you a link.=Я отправлю тебе ссылку.;My battery is almost dead.=Мой телефон почти разряжен.;Can you hear me now?=Теперь вы меня слышите?;I'll be right back.=Я сейчас вернусь.;Thanks for getting back to me.=Спасибо, что ответили.
+@linkers|⚡|Связующие фразы|B2
+On the one hand, it's cheaper.=С одной стороны, это дешевле.;On the other hand, it takes longer.=С другой стороны, это занимает больше времени.;As a result, we lost some money.=В результате мы потеряли деньги.;In addition, the service was great.=Кроме того, сервис был отличным.;For example, you could try yoga.=Например, ты мог бы попробовать йогу.;In other words, it's too risky.=Другими словами, это слишком рискованно.;Nevertheless, I'm going to try.=Тем не менее, я попробую.;In the end, everything worked out.=В конце концов, всё получилось.;First of all, let me thank you.=Прежде всего, позвольте поблагодарить вас.;As soon as I arrive, I'll call you.=Как только приеду, позвоню.;Even though it was raining, we went out.=Хотя шёл дождь, мы вышли.;In case of emergency, call this number.=В случае чрезвычайной ситуации звоните по этому номеру.;All in all, it was a great trip.=В целом, это была отличная поездка.;What I mean is that we need a plan.=Я хочу сказать, что нам нужен план.`;
+
+const SD=`I'd like to + глагол|Я бы хотел… (вежливое желание)|I'd like to book a table.=Я бы хотел забронировать столик.;I'd like to ask you something.=Я бы хотел кое-что спросить.;I'd like to learn to swim.=Я бы хотел научиться плавать.
+Could you + глагол?|Не могли бы вы…? (просьба)|Could you open the door?=Не могли бы вы открыть дверь?;Could you tell me the time?=Не подскажете время?;Could you send me the file?=Не могли бы вы прислать мне файл?
+Can I + глагол?|Можно мне…? / Могу ли я…?|Can I use your phone?=Можно воспользоваться вашим телефоном?;Can I sit here?=Можно здесь сесть?;Can I borrow your pen?=Можно одолжить вашу ручку?
+Would you like + сущ. / to + гл.?|Хотите…? (предложение)|Would you like some tea?=Хотите чаю?;Would you like to join us?=Хотите присоединиться к нам?;Would you like another piece of cake?=Хотите ещё кусок торта?
+I'm going to + глагол|Я собираюсь… (планы)|I'm going to call my friend.=Я собираюсь позвонить другу.;We're going to travel in June.=Мы собираемся путешествовать в июне.;She's going to start a new job.=Она собирается начать новую работу.
+I have to + глагол|Мне нужно… / Я должен…|I have to wake up early.=Мне нужно рано вставать.;We have to leave now.=Нам нужно уйти сейчас.;I have to finish this today.=Я должен закончить это сегодня.
+I used to + глагол|Раньше я (регулярно)…|I used to play football.=Раньше я играл в футбол.;We used to live in Spain.=Раньше мы жили в Испании.;He used to drink a lot of coffee.=Раньше он пил много кофе.
+I've been + -ing for …|Я делаю это уже… (длительность)|I've been studying English for a year.=Я учу английский уже год.;She's been working here since May.=Она работает здесь с мая.;We've been waiting for an hour.=Мы ждём уже час.
+It takes + время + to + гл.|На это уходит…|It takes ten minutes to get there.=Чтобы добраться, нужно десять минут.;It takes time to learn a language.=Чтобы выучить язык, нужно время.;It takes two hours to cook this.=На приготовление уходит два часа.
+I'm used to + -ing|Я привык…|I'm used to getting up early.=Я привык рано вставать.;She's used to working at night.=Она привыкла работать по ночам.;We're used to the noise.=Мы привыкли к шуму.
+How about + -ing?|Как насчёт…?|How about going to the cinema?=Как насчёт сходить в кино?;How about having lunch together?=Как насчёт пообедать вместе?;How about taking a break?=Как насчёт сделать перерыв?
+I'm interested in + -ing|Меня интересует…|I'm interested in learning languages.=Меня интересует изучение языков.;He's interested in music.=Его интересует музыка.;Are you interested in sports?=Тебя интересует спорт?
+If I were you, I'd + гл.|На твоём месте я бы…|If I were you, I'd take a taxi.=На твоём месте я бы взял такси.;If I were you, I'd talk to him.=На твоём месте я бы поговорил с ним.;If I were you, I'd rest more.=На твоём месте я бы больше отдыхал.
+I wish I could + гл.|Жаль, что я не могу…|I wish I could fly.=Хотел бы я уметь летать.;I wish I could stay longer.=Жаль, что я не могу остаться дольше.;I wish I could speak French.=Жаль, что я не говорю по-французски.
+It's worth + -ing|Это стоит того, чтобы…|It's worth visiting this museum.=Этот музей стоит посетить.;It's worth trying.=Это стоит попробовать.;It's not worth waiting.=Ждать нет смысла.
+I can't wait to + гл.|Не могу дождаться, чтобы…|I can't wait to see you.=Не могу дождаться встречи с тобой.;I can't wait to start.=Не могу дождаться начала.;She can't wait to go home.=Она не может дождаться, когда пойдёт домой.
+There is / There are + …|Есть / Имеется…|There is a bank near here.=Рядом есть банк.;There are many people in the park.=В парке много людей.;Is there a pharmacy nearby?=Поблизости есть аптека?
+I'm not sure if + …|Я не уверен, … ли|I'm not sure if he's at home.=Я не уверен, дома ли он.;I'm not sure if it's true.=Я не уверен, правда ли это.;I'm not sure if I can come.=Я не уверен, смогу ли прийти.
+Let me + глагол|Позволь мне… / Давай я…|Let me help you.=Позволь мне помочь тебе.;Let me check my calendar.=Дай я проверю календарь.;Let me think about it.=Дай мне подумать об этом.
+I'd rather + глагол|Я бы предпочёл…|I'd rather walk than drive.=Я лучше пройдусь, чем поеду.;I'd rather stay at home today.=Сегодня я лучше останусь дома.;I'd rather not talk about it.=Я бы предпочёл не говорить об этом.
+Do you mind if I + гл.?|Вы не против, если я…?|Do you mind if I open the window?=Вы не против, если я открою окно?;Do you mind if I sit here?=Вы не против, если я тут сяду?;Do you mind if I ask a question?=Вы не против, если я задам вопрос?
+I've just + прич. III|Я только что…|I've just finished work.=Я только что закончил работу.;She's just arrived.=Она только что приехала.;We've just had lunch.=Мы только что пообедали.
+It seems that + …|Кажется, что…|It seems that he's busy.=Кажется, он занят.;It seems that it will rain.=Кажется, будет дождь.;It seems that we're lost.=Кажется, мы заблудились.
+I'm supposed to + гл.|Я должен (по плану / правилам)…|I'm supposed to meet him at five.=Я должен встретиться с ним в пять.;You're supposed to wear a helmet.=Вы должны носить шлем.;We're supposed to arrive early.=Мы должны приехать пораньше.
+Whether … or …|Будь то… или…|I don't know whether to go or stay.=Не знаю, идти или остаться.;Whether it rains or not, we'll go.=Пойдёт дождь или нет, мы поедем.;Tell me whether you like it or not.=Скажи, нравится тебе или нет.
+The more…, the more…|Чем больше…, тем больше…|The more you practice, the better you get.=Чем больше практикуешься, тем лучше становишься.;The more I read, the more I know.=Чем больше я читаю, тем больше знаю.;The sooner, the better.=Чем скорее, тем лучше.
+Not only … but also …|Не только…, но и…|He not only sings but also dances.=Он не только поёт, но и танцует.;She's not only smart but also kind.=Она не только умна, но и добра.;It's not only cheap but also fast.=Это не только дёшево, но и быстро.`;
+const CD=`@A2
+give up=сдаваться|давать + вверх|Don't give up!
+get up=вставать с постели|получать + вверх|I get up at seven.
+sit down=садиться|сидеть + вниз|Please sit down.
+stand up=вставать с места|стоять + вверх|Everyone stood up.
+turn on=включать|поворачивать + на|Turn on the light.
+turn off=выключать|поворачивать + прочь|Turn off the TV.
+put on=надевать|класть + на|Put on your coat.
+take off=снимать одежду|брать + прочь|Take off your shoes.
+come in=входить|приходить + внутрь|Come in, please.
+go out=выходить погулять|идти + наружу|Let's go out tonight.
+come back=возвращаться|приходить + назад|When will you come back?
+go back=вернуться туда|идти + назад|Let's go back to the hotel.
+look at=смотреть на|смотреть + на|Look at this picture.
+look for=искать|смотреть + для|I'm looking for my keys.
+wake up=просыпаться|будить + вверх|I wake up early.
+pick up=подбирать|брать + вверх|Pick up the phone.
+put down=опускать на место|класть + вниз|Put down the bag.
+write down=записывать|писать + вниз|Write down the address.
+fill in=заполнять бланк|наполнять + в|Fill in the form.
+find out=выяснять|находить + наружу|I'll find out the truth.
+try on=примерять|пробовать + на|Can I try on this shirt?
+hurry up=поторопиться|спешить + вверх|Hurry up, we're late!
+slow down=сбавить скорость|медленный + вниз|Slow down, please.
+sign up=записаться|подписывать + вверх|Sign up for the course.
+log in=войти в аккаунт|журнал + в|Log in to your account.
+wait for=ждать|ждать + для|I'm waiting for you.
+listen to=слушать|слушать + к|Listen to the music.
+get on=сесть в транспорт|получать + на|We got on the bus.
+get off=выйти из транспорта|получать + прочь|Get off at the next stop.
+clean up=прибираться|чистить + вверх|Clean up your room.
+cheer up=приободриться|подбадривать + вверх|Cheer up!
+check in=зарегистрироваться|проверять + в|We check in at noon.
+eat out=поесть вне дома|есть + наружу|We eat out on Fridays.
+grow up=взрослеть|расти + вверх|I grew up in a small town.
+hang out=проводить время вместе|висеть + наружу|We hang out after work.
+call back=перезвонить|звонить + назад|I'll call you back.
+come on=давай же|приходить + на|Come on, let's go!
+look out=берегись|смотреть + наружу|Look out! A car!
+move in=въехать в жильё|двигаться + в|They moved in last week.
+move out=съехать с жилья|двигаться + наружу|He moved out in May.
+throw away=выбросить в мусор|бросать + прочь|Don't throw away the box.
+turn around=развернуться|поворачивать + вокруг|Turn around slowly.
+wash up=помыть посуду|мыть + вверх|I'll wash up after dinner.
+be back=скоро вернуться|быть + назад|I'll be back soon.
+hot dog=хот-дог|горячая + собака|I'd like a hot dog.
+high school=старшая школа|высокая + школа|She's in high school.
+ice cream=мороженое|лёд + крем|We bought ice cream.
+@B1
+give back=отдать вещь обратно|давать + назад|Give back my book.
+give away=раздавать даром|давать + прочь|They gave away free tickets.
+look after=присматривать за|смотреть + после|She looks after her little sister.
+look up=найти в справочнике|смотреть + вверх|Look up the word in a dictionary.
+figure out=сообразить|вычислять + наружу|I can't figure out this problem.
+work out=тренироваться|работать + наружу|I work out three times a week.
+carry on=продолжать начатое|нести + дальше|Carry on working.
+carry out=выполнить задачу|нести + наружу|They carried out the plan.
+bring up=воспитывать ребёнка|приносить + вверх|She was brought up in London.
+break down=сломаться|ломать + вниз|The car broke down.
+break up=расстаться|ломать + вверх|They broke up last year.
+call off=отменить событие|звонить + прочь|The match was called off.
+come across=случайно наткнуться|приходить + через|I came across an old photo.
+cut down=сократить количество|резать + вниз|Cut down on sugar.
+deal with=справляться с|иметь дело + с|I can deal with it.
+end up=оказаться в итоге|заканчивать + вверх|We ended up at home.
+fall apart=развалиться|падать + врозь|The plan fell apart.
+get along=ладить|получать + вдоль|I get along with my sister.
+get over=оправиться после|получать + над|It took me a week to get over the flu.
+get back=вернуться домой|получать + назад|When did you get back?
+give in=сдаться под давлением|давать + в|Finally, he gave in.
+go on=продолжаться|идти + дальше|What's going on?
+go through=пережить трудное|идти + сквозь|She went through a hard time.
+hold on=подождать немного|держать + на|Hold on a second.
+keep on=упорно продолжать|держать + на|Keep on trying.
+keep up=не отставать|держать + вверх|Keep up the good work.
+let down=подвести|пускать + вниз|Don't let me down.
+make up=выдумать|делать + вверх|He made up a story.
+make out=с трудом разобрать|делать + наружу|I can't make out the words.
+pass out=потерять сознание|передавать + наружу|He passed out from the heat.
+point out=обратить внимание|указывать + наружу|She pointed out a mistake.
+put off=отложить на потом|класть + прочь|Don't put off your homework.
+run into=случайно встретить|бежать + в|I ran into an old friend.
+set off=отправиться в путь|ставить + прочь|We set off at dawn.
+set up=основать|ставить + вверх|They set up a company.
+show off=красоваться|показывать + прочь|He likes to show off.
+show up=объявиться|показывать + вверх|He didn't show up.
+shut down=закрыться совсем|закрывать + вниз|The shop shut down.
+sort out=разобраться с проблемой|сортировать + наружу|Let's sort out this mess.
+stand out=выделяться|стоять + наружу|She stands out in a crowd.
+take after=пойти в родителей|брать + после|He takes after his father.
+take up=увлечься занятием|брать + вверх|I took up painting.
+take over=перенять дела|брать + над|She took over the business.
+tell off=отчитать|говорить + прочь|The teacher told him off.
+think over=обдумать|думать + над|Let me think it over.
+throw up=вырвать|бросать + вверх|He threw up.
+try out=опробовать|пробовать + наружу|Try out the new app.
+turn down=отказать|поворачивать + вниз|She turned down the offer.
+turn up=прибыть неожиданно|поворачивать + вверх|He turned up late.
+use up=израсходовать до конца|использовать + вверх|We used up all the paper.
+warm up=размяться|греть + вверх|Warm up before running.
+work on=трудиться над|работать + на|I'm working on a project.
+add up=сходиться в сумме|добавлять + вверх|The numbers don't add up.
+back up=сделать резервную копию|поддерживать + вверх|Back up your files.
+blow up=взорвать|дуть + вверх|The balloon blew up.
+build up=наращивать силы|строить + вверх|Build up your strength.
+catch up=нагнать|ловить + вверх|I'll catch up with you.
+chip in=скинуться на что-то|откалывать + в|Everyone chipped in.
+cut off=отрезать|резать + прочь|The power was cut off.
+drop by=заглянуть в гости|ронять + мимо|Drop by anytime.
+drop off=подвезти и высадить|ронять + прочь|Can you drop me off here?
+fill up=заправить до полного|наполнять + вверх|Fill up the tank.
+get away=улизнуть|получать + прочь|The thief got away.
+get in=приехать на место|получать + в|What time does the train get in?
+go ahead=давай, начинай|идти + вперёд|Go ahead, I'm listening.
+go off=зазвонить|идти + прочь|My alarm went off at six.
+hand in=сдать работу|вручать + в|Hand in your homework.
+hang up=положить трубку|вешать + вверх|He hung up on me.
+head for=держать курс на|голова + для|We're heading for the beach.
+hold up=задержать|держать + вверх|The traffic held us up.
+join in=включиться в игру|присоединяться + в|Come and join in!
+keep out=не пускать внутрь|держать + наружу|Keep out!
+lay off=сократить работников|класть + прочь|The company laid off fifty workers.
+lie down=прилечь|лежать + вниз|I need to lie down.
+log out=выйти из аккаунта|журнал + наружу|Don't forget to log out.
+look through=бегло просмотреть|смотреть + сквозь|Look through these papers.
+green light=разрешение начинать|зелёный + свет|We got the green light.
+big deal=подумаешь|большая + сделка|It's not a big deal.
+white lie=безобидная ложь|белая + ложь|It was just a white lie.
+sweet tooth=любовь к сладкому|сладкий + зуб|I have a sweet tooth.
+small talk=светская беседа|маленький + разговор|I'm bad at small talk.
+@B2
+act up=барахлить|действовать + вверх|My laptop is acting up.
+back down=пойти на уступки|поддерживать + вниз|He refused to back down.
+bail out=спасти от банкротства|вычерпывать + наружу|The government bailed out the bank.
+blow over=утихнуть со временем|дуть + над|The scandal will blow over.
+bring about=повлечь за собой|приносить + около|The reform brought about change.
+bring out=выпустить на рынок|приносить + наружу|They brought out a new model.
+brush up=освежить знания|чистить + вверх|I need to brush up my French.
+burn out=выгореть на работе|гореть + наружу|He burned out at work.
+call for=требовать|звонить + для|The situation calls for action.
+catch on=войти в моду|ловить + на|The idea caught on.
+come about=произойти|приходить + около|How did this come about?
+come out=выйти в свет|приходить + наружу|The book comes out in May.
+count on=положиться на|считать + на|You can count on me.
+cut back=урезать расходы|резать + назад|We must cut back spending.
+do without=обойтись без|делать + без|I can't do without coffee.
+draw up=составить документ|рисовать + вверх|Draw up a contract.
+dwell on=зацикливаться на|жить + на|Don't dwell on the past.
+fall for=поддаться на уловку|падать + для|He fell for her smile.
+fall through=сорваться о планах|падать + сквозь|Our plans fell through.
+fight back=дать отпор|драться + назад|You have to fight back.
+fit in=вписаться в коллектив|подходить + в|She doesn't fit in here.
+follow up=проверить ход дел|следовать + вверх|I'll follow up next week.
+get across=донести мысль|получать + через|He couldn't get his point across.
+get ahead=продвинуться вперёд|получать + вперёд|She wants to get ahead in her career.
+get by=сводить концы с концами|получать + мимо|We can get by on this money.
+get through=дозвониться|получать + сквозь|I can't get through to him.
+give out=раздать листовки|давать + наружу|She gave out leaflets.
+go over=пересмотреть|идти + над|Let's go over the plan.
+hold back=сдержать|держать + назад|He held back his tears.
+hold out=продержаться|держать + наружу|They held out for days.
+keep to=строго придерживаться|держать + к|Keep to the schedule.
+lay out=изложить подробно|класть + наружу|Lay out your ideas clearly.
+leave out=пропустить|оставлять + наружу|Don't leave out any details.
+look into=изучить вопрос|смотреть + в|The police are looking into it.
+look up to=уважать|смотреть + вверх + к|I look up to my teacher.
+look down on=относиться свысока|смотреть + вниз + на|Don't look down on others.
+mix up=перепутать|смешивать + вверх|I mixed up the dates.
+own up=сознаться|владеть + вверх|He owned up to the mistake.
+pan out=сложиться в итоге|мыть золото + наружу|Let's see how it pans out.
+pass on=передать дальше|передавать + на|Pass on the message.
+pull off=справиться с трудным|тянуть + прочь|She pulled off a surprise.
+pull through=выкарабкаться|тянуть + сквозь|He'll pull through.
+rule out=исключить вариант|править + наружу|We can't rule out rain.
+run down=разрядиться|бежать + вниз|My battery ran down.
+settle down=остепениться|усаживаться + вниз|They plan to settle down.
+slip up=допустить промах|скользить + вверх|I slipped up on the date.
+stand by=поддержать в беде|стоять + рядом|I'll stand by you.
+step down=уйти с поста|шагать + вниз|The CEO stepped down.
+stick to=не отступать от|прилипать + к|Stick to the plan.
+sum up=подытожить|суммировать + вверх|To sum up, it works.
+take in=усвоить информацию|брать + в|I couldn't take it all in.
+take on=взвалить на себя|брать + на|She took on more work.
+tear down=снести здание|рвать + вниз|They tore down the old house.
+touch on=упомянуть вскользь|трогать + на|He touched on the topic.
+turn out=оказаться|поворачивать + наружу|It turned out well.
+wear out=износиться|носить + наружу|My shoes wore out.
+weigh up=оценить за и против|взвешивать + вверх|Weigh up the options.
+wind up=очутиться в итоге|заводить + вверх|We wound up in Rome.
+write off=списать долг|писать + прочь|They wrote off the debt.
+red tape=бюрократическая волокита|красная + лента|There's too much red tape.
+cold shoulder=холодный приём|холодное + плечо|She gave me the cold shoulder.
+dark horse=тёмная лошадка|тёмная + лошадь|He's a real dark horse.
+black sheep=паршивая овца|чёрная + овца|He's the black sheep of the family.
+cold feet=внезапный страх перед шагом|холодные + ноги|He got cold feet before the wedding.
+silver lining=светлая сторона беды|серебряная + подкладка|Every cloud has a silver lining.
+blind date=свидание вслепую|слепое + свидание|She went on a blind date.
+second thoughts=сомнения|вторые + мысли|I'm having second thoughts.
+@C1
+back out=пойти на попятную|поддерживать + наружу|He backed out of the deal.
+beat up=избить|бить + вверх|He was beaten up.
+bog down=увязнуть в деталях|топь + вниз|We got bogged down in details.
+branch out=расширить сферу|ветвь + наружу|She branched out into films.
+buckle down=засесть за работу|застёгивать + вниз|It's time to buckle down.
+chime in=вставить реплику|звенеть + в|He chimed in with a joke.
+clamp down=принять жёсткие меры|зажим + вниз|Police clamp down on crime.
+cough up=раскошелиться|кашлять + вверх|You'll have to cough up.
+dawn on=дойти до сознания|рассветать + на|It dawned on me that I was wrong.
+dig in=приняться за еду|копать + в|Dig in, everyone!
+drag on=тянуться бесконечно|тащить + дальше|The meeting dragged on.
+drum up=заручиться поддержкой|барабанить + вверх|They drummed up support.
+ease off=поутихнуть|облегчать + прочь|The pain eased off.
+fall back on=прибегнуть к запасному|падать + назад + на|Fall back on your savings.
+filter out=отсеять лишнее|фильтровать + наружу|Filter out the noise.
+flesh out=добавить подробностей|плоть + наружу|Flesh out your idea.
+gloss over=замять вопрос|глянец + над|Don't gloss over the facts.
+hammer out=выработать соглашение|колотить + наружу|They hammered out a deal.
+hinge on=держаться на|петля + на|Everything hinges on this.
+iron out=сгладить неполадки|гладить + наружу|Let's iron out the problems.
+jot down=черкнуть на бумаге|чиркнуть + вниз|Jot down my number.
+kick off=дать старт|пинать + прочь|The meeting kicks off at nine.
+lash out=накинуться с руганью|хлестать + наружу|He lashed out at his team.
+live on=существовать на средства|жить + на|They live on a small income.
+muddle through=кое-как выкрутиться|путаться + сквозь|We'll muddle through.
+opt out=выйти из программы|выбирать + наружу|You can opt out anytime.
+phase out=свернуть постепенно|фаза + наружу|They phased out old models.
+play down=приуменьшить значение|играть + вниз|Don't play down the risks.
+rope in=втянуть в дело|верёвка + в|They roped me in to help.
+scale back=сократить масштаб|масштаб + назад|They scaled back the plan.
+shy away from=сторониться|пугаться + прочь + от|Don't shy away from challenges.
+single out=выделить из группы|одиночный + наружу|She was singled out for praise.
+tide over=выручить на время|прилив + над|This will tide us over.
+usher in=открыть новую эру|вводить + в|The invention ushered in a new era.
+water down=разбавить водой|вода + вниз|They watered down the law.
+weed out=отсеять слабых|полоть + наружу|Weed out weak candidates.
+wrap up=завершить дело|заворачивать + вверх|Let's wrap up the meeting.
+glass ceiling=невидимый карьерный барьер|стеклянный + потолок|Women face a glass ceiling.
+red herring=ложный след|красная + сельдь|That clue was a red herring.
+white elephant=обременительная вещь|белый + слон|The stadium became a white elephant.
+dead end=тупик|мёртвый + конец|We reached a dead end.`;
+
+const L=['A1','A2','B1','B2','C1','C2'];
+const T={A1:'Начинаем с основы',A2:'Расширяем словарный запас',B1:'Уверенный уровень',B2:'Продвинутые слова',C1:'Высокий уровень',C2:'Редкие и книжные слова'};
+const $=id=>document.getElementById(id);
+const W=[],seen=new Set();
+L.forEach(l=>D[l].split('\n').forEach((line,st)=>line.split(';').forEach(p=>{p=p.trim();const k=p.indexOf('=');if(k<1)return;const en=p.slice(0,k).trim(),ru=p.slice(k+1).trim();if(!en||!ru||seen.has(en.toLowerCase()))return;seen.add(en.toLowerCase());W.push({l,st,en,ru})})));
+
+const KEY='lexirise_v2';
+let S={};try{S=JSON.parse(localStorage.getItem(KEY))||{}}catch(e){}
+S=Object.assign({level:'A1',m:{},correct:0,total:0,streak:0,last:'',srs:{},mis:{},act:{},fav:{},fs:{},fc:{},ph:{},ord:{},cm:{},cact:{},clevel:'A2',stage:{},sound:true},S);
+let session=[],si=0,lib='ALL',limit=100,mode='learn',timer=null,ft=null,locked=false,hinted=false,run=0;
+const IV=[1,3,7,14,30]; // интервалы повторения, дни
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+const m=w=>S.m[w.en]||0;
+const pool=l=>W.filter(w=>w.l===l);
+const mc=l=>pool(l).filter(w=>m(w)>=5).length;
+const spool=(l,st)=>W.filter(w=>w.l===l&&w.st===st);
+const nst=l=>pool(l).reduce((a,w)=>Math.max(a,w.st),0)+1;
+const smc=(l,st)=>spool(l,st).filter(w=>m(w)>=5).length;
+const sdone=(l,st)=>spool(l,st).length>0&&smc(l,st)>=spool(l,st).length;
+// текущая часть уровня: выбранная, а если она выучена — первая невыученная
+function curStage(l){
+  S.stage=S.stage||{};
+  const n=nst(l);let st=S.stage[l];
+  if(!(st>=0&&st<n))st=0;
+  if(sdone(l,st)){for(let i=0;i<n;i++)if(!sdone(l,i)){st=i;break}}
+  return st;
+}
+const pct=()=>S.total?Math.round(S.correct/S.total*100)+'%':'—';
+const shuffle=a=>a.map(x=>[Math.random(),x]).sort((p,q)=>p[0]-q[0]).map(x=>x[1]);
+const dn=()=>{const d=new Date();return Math.floor((d.getTime()-d.getTimezoneOffset()*60000)/86400000)};
+const dayStr=d=>d.toISOString().slice(0,10);
+/* ---------- подбор вариантов: вперемешку, без синонимов, одной формы ---------- */
+const SYN=['allow,permit,let,enable','big,large,huge,enormous,immense,vast,massive,giant','small,tiny,little,minor,diminutive','start,begin,commence,initiate','end,finish,complete,conclude,terminate,cease','buy,purchase,acquire,obtain','help,assist,aid,support','show,display,demonstrate,exhibit,reveal,disclose','choose,select,pick,opt','get,gain,receive,obtain','need,require,demand','ask,inquire,question','fast,quick,rapid,swift,speedy','smart,clever,intelligent,wise,astute,bright','rich,wealthy,affluent,prosperous','hard,difficult,tough,arduous','easy,simple,straightforward,effortless','beautiful,pretty,lovely,attractive,gorgeous','angry,mad,furious,irate','tired,exhausted,weary,fatigued','happy,glad,pleased,cheerful,delighted,joyful','sad,unhappy,gloomy,miserable','say,tell,state,declare,announce,mention,speak,talk','look,watch,see,view,glance,observe,notice','think,believe,consider,suppose,assume,guess,imagine','make,create,produce,build,construct,generate','keep,hold,retain,maintain,preserve,store','fix,repair,mend','stop,halt,cease,quit,pause','hurry,rush,hasten','house,home,building,apartment','child,kid,baby,infant','road,street,way,path,route','job,work,career,profession,occupation','danger,risk,threat,hazard','idea,thought,notion,concept','problem,issue,trouble,difficulty','result,outcome,consequence,effect','answer,reply,respond,response','rule,law,regulation','goal,aim,target,purpose,objective','quiet,silent,calm,peaceful','loud,noisy','strange,odd,unusual,weird,peculiar','important,essential,crucial,vital,significant,key,major','enough,sufficient,adequate','often,frequently,usually','maybe,perhaps,possibly','almost,nearly','sure,certain,confident','brave,courageous,bold,daring','afraid,scared,frightened','old,ancient,elderly,aged','new,modern,recent,fresh','cheap,inexpensive','expensive,costly,pricey','friend,mate,buddy,companion','boss,manager,chief,leader,head','cry,weep,sob','laugh,giggle,chuckle','jump,leap,hop','throw,toss,hurl','hit,strike,beat,punch','ruin,destroy,damage,harm','enjoy,like,love,adore','hate,detest,dislike','agree,accept,consent','refuse,reject,decline,deny','explain,clarify,describe','bad,awful,terrible,horrible,poor,evil','good,great,excellent,fine,nice,wonderful','shout,yell,scream','wish,hope,desire,want,dream','pain,ache,hurt','meeting,conference,session','trip,journey,voyage,tour,travel','gift,present,donation','enemy,foe,opponent','part,piece,portion,section,fragment','sign,signal,symbol','chance,opportunity,possibility','speed,pace,rate,velocity','mistake,error,fault,flaw','fear,terror,dread,horror,panic','cold,cool,chilly,freezing','hot,warm,boiling','dirty,filthy,messy','clean,tidy,neat','thin,slim,slender,skinny','fat,thick,plump','hide,conceal','begin,start','finish,end','buy,get']; 
+const SYNMAP=new Map();
+SYN.forEach((g,i)=>g.split(',').forEach(w=>{const k=w.trim().toLowerCase();if(!SYNMAP.has(k))SYNMAP.set(k,[]);SYNMAP.get(k).push(i)}));
+const synon=(a,b)=>{const p=SYNMAP.get(a.toLowerCase()),q=SYNMAP.get(b.toLowerCase());return !!(p&&q&&p.some(i=>q.includes(i)))};
+const stem=s=>s.toLowerCase().replace(/[^а-яёa-z]/g,'').slice(0,5);
+const fcls=ru=>{const w=ru.toLowerCase().trim().split(' ')[0];if(/(ться|тись|ть|ти|чь)$/.test(w))return 'v';if(/(ый|ий|ой|ая|яя|ое|ее|ые|ие)$/.test(w))return 'a';return 'n'};
+const wshape=w=>/ing$/.test(w)?'ing':/ed$/.test(w)?'ed':/ly$/.test(w)?'ly':/'/.test(w)?'ap':(/s$/.test(w)&&w.length>3)?'s':'b';
+// pl — кандидаты, pre — уже выбранные «ловушки», extra(x,y) — доп. запрет синонимов
+function pickOpts(x,rev,pl,pre,extra){
+  const key=rev?'en':'ru',cls=fcls(x.ru);
+  const bad=y=>y.en===x.en||y.ru.toLowerCase()===x.ru.toLowerCase()||stem(y.ru)===stem(x.ru)||synon(x.en,y.en)||(extra&&extra(x,y));
+  const base=pl.filter(y=>!bad(y));
+  const order=[...shuffle(base.filter(y=>fcls(y.ru)===cls)),...shuffle(base.filter(y=>fcls(y.ru)!==cls))];
+  const used=new Set([x[key].toLowerCase(),...pre.map(p=>p.label.toLowerCase())]),stems=new Set([stem(x.ru)]),dis=[...pre];
+  for(const y of order){
+    if(dis.length>=3)break;
+    const lab=y[key].toLowerCase();
+    if(used.has(lab)||stems.has(stem(y.ru)))continue;
+    used.add(lab);stems.add(stem(y.ru));dis.push({label:y[key],en:y.en});
+  }
+  if(dis.length<3)for(const y of shuffle(W.filter(y=>!bad(y)))){
+    if(dis.length>=3)break;
+    const lab=y[key].toLowerCase();
+    if(used.has(lab))continue;
+    used.add(lab);dis.push({label:y[key],en:y.en});
+  }
+  return shuffle([{label:x[key],en:x.en},...dis]);
+}
+// порядок появления новых слов — случайный (один раз на уровень), а не по темам
+function ordRank(key,l,items){
+  S.ord=S.ord||{};const k=key+l;let o=S.ord[k];
+  if(!o){o=shuffle(items.map(w=>w.en));S.ord[k]=o;save()}
+  else{const have=new Set(o);let ch=false;items.forEach(w=>{if(!have.has(w.en)){o.push(w.en);ch=true}});if(ch)save()}
+  return new Map(o.map((en,i)=>[en,i]));
+}
+const ACT=20; // сколько слов учится одновременно
+const byEn=new Map(W.map(w=>[w.en,w]));
+const THEMES='monday,tuesday,wednesday,thursday,friday,saturday,sunday|spring,summer,autumn,winter|red,blue,green,yellow,black,white,brown,pink,gray,gold,silver,orange|one,two,three,four,five,six,seven,eight,nine,ten,hundred|mother,father,brother,sister,son,daughter,husband,wife,grandmother,grandfather,uncle,aunt,cousin,parents,parent,baby,kid,mom,dad|head,eye,ear,nose,mouth,hand,arm,leg,foot,face,hair,heart,back,finger,neck,shoulder,knee,stomach,tooth,skin,lip,chest,throat,cheek,tongue,bone,muscle|bread,milk,egg,meat,fish,rice,cheese,butter,sugar,salt,tea,coffee,juice,soup,cake,fruit,vegetable,potato,tomato,banana,orange,breakfast,lunch,dinner,pizza,sandwich,salad,pasta,noodles,chicken,beef,sausage,honey,jam,chocolate,candy,biscuit,lemon,grape,strawberry,carrot,onion,cucumber,cabbage,mushroom,nut,pepper,oil,beer,wine,meal,cream|dog,cat,bird,horse,cow,pig,mouse,lion,tiger,elephant,monkey,bear,wolf,fox,rabbit,sheep,goat,duck,frog,snake,bee,butterfly,spider,rat,animal,insect|shirt,dress,shoes,hat,coat,jacket,trousers,skirt,socks,gloves,umbrella,boot,shoe,belt,clothes|sun,moon,star,sky,tree,flower,rain,snow,wind,sea,river,mountain,cloud,grass,leaf,forest,lake,island,field,stone,fire,ice,earth|kitchen,bedroom,bathroom,room,door,window,table,chair,bed,floor,wall,sofa,carpet,lamp,mirror,fridge,oven,shelf,roof,stairs,gate,fence|bus,train,taxi,airplane,bicycle,boat,ship,truck,motorbike,plane,car,subway|north,south,east,west,left,right|doctor,nurse,teacher,engineer,driver,farmer,singer,artist,lawyer,pilot,waiter,chef,cashier,journalist,scientist,soldier,builder,electrician,mechanic,secretary,manager,worker,boss|hot,cold,warm,cool|big,small,large,tiny,huge,little'.split('|').map(g=>g.split(','));
+const THM=new Map();THEMES.forEach((g,i)=>g.forEach(w=>{if(!THM.has(w))THM.set(w,i)}));
+const thm=w=>{const k=w.en.toLowerCase();return THM.has(k)?THM.get(k):-1};
+// «работа»: ACT слов из текущей части; новые берутся в случайном порядке,
+// не больше двух слов одной темы (дни недели, цвета, семья…) одновременно
+function activeSet(l,st){
+  S.act=S.act||{};const key=l+':'+st;
+  const items=spool(l,st);
+  const before=(S.act[key]||[]).join('|');
+  let cur=(S.act[key]||[]).filter(en=>{const w=byEn.get(en);return w&&w.l===l&&w.st===st&&m(w)<5});
+  if(cur.length<ACT){
+    const have=new Set(cur),cnt=new Map();
+    cur.forEach(en=>{const t=thm(byEn.get(en));if(t>=0)cnt.set(t,(cnt.get(t)||0)+1)});
+    const rk=ordRank('w',key,items);
+    const cand=items.filter(w=>m(w)<5&&!have.has(w.en)).sort((a,b)=>rk.get(a.en)-rk.get(b.en));
+    const defer=[];
+    for(const w of cand){
+      if(cur.length>=ACT)break;
+      const t=thm(w);
+      if(t>=0&&(cnt.get(t)||0)>=2){defer.push(w);continue}
+      cur.push(w.en);if(t>=0)cnt.set(t,(cnt.get(t)||0)+1);
+    }
+    for(const w of defer){if(cur.length>=ACT)break;cur.push(w.en)}
+  }
+  S.act[key]=cur;
+  if(cur.join('|')!==before)save();
+  return cur.map(en=>byEn.get(en));
+}
+function wsample(arr,n,wf){
+  const a=arr.slice(),out=[];
+  while(out.length<n&&a.length){
+    let tot=0;a.forEach(x=>tot+=wf(x));
+    let r=Math.random()*tot,i=0;
+    for(;i<a.length-1;i++){r-=wf(a[i]);if(r<=0)break}
+    out.push(a.splice(i,1)[0]);
+  }
+  return out;
+}
+function updProg(){
+  const l=S.level,st=curStage(l),n=spool(l,st).length,d=smc(l,st);
+  [['scount','sbar'],['tcount','tbar']].forEach(([c,b])=>{$(c).textContent=d+'/'+n;$(b).style.width=(n?d/n*100:0)+'%'});
+}
+const dueList=()=>W.filter(w=>S.srs[w.en]&&S.srs[w.en].due<=dn());
+const pl=n=>{const a=n%10,b=n%100;return (a>=2&&a<=4&&!(b>=12&&b<=14))?'раза':'раз'};
+const favList=()=>W.filter(w=>S.fav[w.en]);
+const misList=()=>W.filter(w=>(S.mis[w.en]||0)>0);
+
+/* ---------- озвучка ---------- */
+function speak(t,force){
+  if((!S.sound&&!force)||!('speechSynthesis' in window))return;
+  try{
+    const u=new SpeechSynthesisUtterance(t);u.lang='en-US';u.rate=.9;
+    const v=speechSynthesis.getVoices().find(v=>/^en[-_]/i.test(v.lang));if(v)u.voice=v;
+    speechSynthesis.cancel();speechSynthesis.speak(u);
+  }catch(e){}
+}
+function updSnd(){['snd','tsnd','psnd','csnd'].forEach(id=>{const b=$(id);b.textContent=S.sound?'🔊':'🔇';b.classList.toggle('off',!S.sound);b.title=S.sound?'Озвучка включена':'Озвучка выключена'})}
+function toggleSound(){S.sound=!S.sound;save();if(!S.sound&&'speechSynthesis' in window)speechSynthesis.cancel();updSnd()}
+
+function updStar(){
+  const x=session[si];if(!x)return;
+  const on=!!S.fav[x.en];
+  ['star','tstar'].forEach(id=>{const b=$(id);b.textContent=on?'★':'☆';b.classList.toggle('on',on);b.title=on?'Убрать из «Моих слов»':'Добавить в «Мои слова»'});
+}
+function toggleFav(en){if(S.fav[en]){delete S.fav[en];delete S.fs[en];delete S.fc[en]}else S.fav[en]=1;save()}
+function flash(t){$('flash').textContent=t;clearTimeout(ft);ft=setTimeout(()=>$('flash').textContent='',3500)}
+function show(id){
+  document.querySelectorAll('.screen').forEach(x=>x.classList.toggle('active',x.id===id));
+  document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('active',x.dataset.s===id));
+  window.scrollTo(0,0);render();
+}
+function setStage(i){
+  const l=S.level;
+  if(sdone(l,i)){flash('Эта часть уже выучена ✓ Слова из неё придут в повторении');return}
+  S.stage[l]=i;save();render();
+}
+function setLevel(x){S.level=x;save();render()}
+function setLib(x){lib=x;limit=100;renderLib()}
+
+function render(){
+  const l=S.level,a=pool(l),done=W.filter(w=>m(w)>=5).length;
+  $('total').textContent=W.length;
+  $('lvl').textContent=l;$('title').textContent=T[l];
+  const st=curStage(l),sn=spool(l,st).length,sd=smc(l,st);
+  $('bar').style.width=(sn?sd/sn*100:0)+'%';
+  $('txt').textContent='Часть '+(st+1)+' из '+nst(l)+': '+sd+' из '+sn+' выучено · в работе '+activeSet(l,st).length;
+  $('txt2').textContent='Весь уровень '+l+': '+mc(l)+' из '+a.length;
+  $('stages').innerHTML=Array.from({length:nst(l)},(_,i)=>`<button class="${i===st?'active':''}" onclick="setStage(${i})">${sdone(l,i)?'✓ ':''}Часть ${i+1} · ${spool(l,i).length}</button>`).join('');
+  $('mastered').textContent=done;$('streak').textContent=S.streak;$('accuracy').textContent=pct();
+  $('cReview').textContent=dueList().length;$('cFav').textContent=favList().length;$('cMist').textContent=misList().length;
+  $('levels').innerHTML=L.map(x=>`<button class="${x===S.level?'active':''}" onclick="setLevel('${x}')">${x} · ${pool(x).length}</button>`).join('');
+  $('pm').textContent=done;$('pt').textContent=W.length;$('pa').textContent=pct();
+  $('lstats').innerHTML=L.map(x=>`<div style="margin:16px 0"><b>${x}</b><span style="float:right;color:#9295a3">${mc(x)}/${pool(x).length}</span><div class="progress" style="margin-top:7px"><i style="width:${pool(x).length?mc(x)/pool(x).length*100:0}%"></i></div></div>`).join('')+phStat()+cStat();
+  updSnd();renderLib();renderPh();renderCombo();
+}
+function renderLib(){
+  $('liblevels').innerHTML=['ALL','FAV',...L].map(x=>`<button class="${lib===x?'active':''}" onclick="setLib('${x}')">${x==='ALL'?'Все':x==='FAV'?'★ Мои':x}</button>`).join('');
+  const q=$('search').value.trim().toLowerCase();
+  const a=W.filter(w=>(lib==='ALL'||(lib==='FAV'?S.fav[w.en]:w.l===lib))&&(!q||w.en.toLowerCase().includes(q)||w.ru.toLowerCase().includes(q)));
+  $('list').innerHTML=a.slice(0,limit).map(w=>`<div class="row"><div><b>${w.en}</b><br><small>${w.ru} · ${w.l}</small></div><div class="rowr"><div>${lib==='FAV'?`<small>пройдено ${S.fc[w.en]||0} ${pl(S.fc[w.en]||0)}</small>`:`<small>${m(w)}/5</small><div class="meter"><i style="width:${m(w)*20}%"></i></div>`}</div><button class="icon rs ${S.fav[w.en]?'on':''}" data-en="${w.en}" title="Мои слова">${S.fav[w.en]?'★':'☆'}</button></div></div>`).join('')||'<div class="note">'+(lib==='FAV'?'Здесь пока пусто — отмечай слова звёздочкой ☆':'Ничего не найдено')+'</div>';
+  if(a.length>limit)$('list').insertAdjacentHTML('beforeend',`<button class="more" onclick="limit+=100;renderLib()">Показать ещё (${a.length-limit})</button>`);
+}
+
+/* ---------- результат ответа: прогресс, интервалы, ошибки ---------- */
+function tally(ok){
+  const today=dayStr(new Date());
+  if(S.last!==today){const y=new Date();y.setDate(y.getDate()-1);S.streak=S.last===dayStr(y)?S.streak+1:1;S.last=today}
+  S.total++;if(ok)S.correct++;
+}
+function applyResult(x,ok,full=true){
+  tally(ok);
+  if(mode==='fav'){S.fs[x.en]=ok?(S.fs[x.en]||0)+1:0;if(ok)S.fc[x.en]=(S.fc[x.en]||0)+1}
+  const d=dn(),e=S.srs[x.en];
+  if(ok){
+    if(full){
+      S.m[x.en]=Math.min(5,m(x)+1);
+      if(S.mis[x.en])S.mis[x.en]=Math.max(0,S.mis[x.en]-1);
+      if(!e||e.due<=d){const step=(e?e.step:0)+1;S.srs[x.en]={step,due:d+IV[Math.min(step,IV.length)-1]}}
+    }
+  }else{
+    S.m[x.en]=Math.max(0,m(x)-1);
+    S.mis[x.en]=2;                // нужно 2 верных ответа, чтобы слово ушло из «ошибок»
+    S.srs[x.en]={step:0,due:d};   // вернётся в повторение сразу
+  }
+  save();
+}
+
+/* ---------- запуск режимов ---------- */
+function stopAll(){clearTimeout(timer);if('speechSynthesis' in window)speechSynthesis.cancel();show('home')}
+function buildBatch(kind,avoid){
+  const skip=new Set((avoid||[]).map(w=>w.en));
+  const ex=a=>{const f=a.filter(w=>!skip.has(w.en));return f.length>=Math.min(5,a.length)?f:a};
+  if(kind==='review')return ex(dueList()).sort((x,y)=>S.srs[x.en].due-S.srs[y.en].due||Math.random()-.5).slice(0,15);
+  if(kind==='fav')return wsample(ex(favList()),10,w=>Math.max(1,6-(S.fs[w.en]||0)));
+  if(kind==='mistakes')return ex(shuffle(misList())).sort((x,y)=>S.mis[y.en]-S.mis[x.en]).slice(0,10);
+  const act=activeSet(S.level,curStage(S.level));
+  if(kind==='type'){
+    const known=act.filter(w=>m(w)>=1||S.srs[w.en]);
+    return ex(shuffle(known.length>=5?known:act)).slice(0,10);
+  }
+  return wsample(ex(act),10,w=>6-m(w));
+}
+function finishRun(){
+  clearTimeout(timer);if('speechSynthesis' in window)speechSynthesis.cancel();
+  const n=run;show('home');
+  flash(mode==='learn'&&mc(S.level)===pool(S.level).length?'Уровень '+S.level+' пройден 🎉 Выбери следующий':mode==='review'?'Повторение завершено ✨ Слов: '+n:mode==='mistakes'?'Ошибки проработаны 💪 Слов: '+n:'Тренировка завершена · слов: '+n);
+}
+// тренировка не прерывается: когда пачка закончилась, сразу берётся следующая
+function advance(){
+  run++;
+  if(si<session.length-1){si++}
+  else{
+    const a=buildBatch(mode,session.slice(-3));
+    if(!a.length){run--;finishRun();return}
+    session=a;si=0;
+  }
+  mode==='type'?tquestion():question();
+}
+function startSession(kind){
+  clearTimeout(timer);mode=kind||'learn';
+  const a=buildBatch(mode,[]);
+  if(!a.length){flash(mode==='review'?'Сегодня повторять нечего — загляни завтра ✨':mode==='mistakes'?'Ошибок нет — отлично!':mode==='fav'?'Пока пусто — добавляй слова кнопкой ☆ прямо во время тренировки':'Все слова этого уровня выучены 🎉 Выбери следующий');return}
+  session=a;si=0;run=0;
+  show('learn');question();
+}
+function startTyping(){
+  clearTimeout(timer);mode='type';
+  const a=buildBatch('type',[]);
+  if(!a.length)return;
+  session=a;si=0;run=0;
+  show('typing');tquestion();
+}
+
+/* ---------- выбор варианта ---------- */
+function question(){
+  const x=session[si];locked=false;clearTimeout(timer);
+  const rev=mode==='fav'?Math.random()<.5:(m(x)>=2&&Math.random()<.5); // обратное направление: русский -> английский
+  x._rev=rev;
+  const tag=mode==='review'?'Повторение · ':mode==='mistakes'?'Ошибки · ':mode==='fav'?'Мои слова · ':'';
+  const fc=S.fc[x.en]||0,prog=mode==='fav'?'пройдено '+fc+' '+pl(fc):m(x)+'/5';
+  $('badge').textContent=tag+x.l+' · '+prog+(rev?' · RU → EN':' · EN → RU');
+  $('word').textContent=rev?x.ru:x.en;
+  $('hint').textContent=rev?'Выбери английское слово':'Выбери перевод';
+  $('feedback').textContent='';
+  updProg();updStar();
+  const opts=pickOpts(x,rev,pool(x.l),[],null);
+  $('answers').innerHTML=opts.map(o=>`<button class="answer" data-en="${o.en}">${o.label}</button>`).join('');
+  $('answers').querySelectorAll('button').forEach(b=>b.onclick=()=>answer(b,b.dataset.en===x.en,x));
+  if(!rev)speak(x.en); // слово озвучивается при появлении
+}
+function answer(btn,ok,x){
+  if(locked)return;locked=true;
+  if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();
+  $('answers').querySelectorAll('button').forEach(b=>b.disabled=true);
+  applyResult(x,ok);updProg();
+  btn.classList.add(ok?'correct':'wrong');
+  if(!ok)$('answers').querySelectorAll('button').forEach(b=>{if(b.dataset.en===x.en)b.classList.add('correct')});
+  const n=S.fc[x.en]||0;
+  $('hint').textContent=ok?(mode==='fav'?'Пройдено: '+n+' '+pl(n):'Закрепление: '+m(x)+'/5'):'Правильный ответ: '+(x._rev?x.en:x.ru)+' — '+(x._rev?x.ru:x.en);
+  $('feedback').textContent=ok?(mode==='fav'?'✓ Верно — +1 к счёту прохождений.':m(x)>=5?'✓ Слово выучено.':'✓ Правильно — оно ещё вернётся.'):'↻ Ошибка — слово будет повторено.';
+  if(x._rev)speak(x.en); // в режиме RU → EN слово звучит после ответа
+  timer=setTimeout(advance,ok?900:1900);
+}
+
+/* ---------- практика: печатать слово ---------- */
+function tquestion(){
+  const x=session[si];locked=false;hinted=false;clearTimeout(timer);
+  $('tbadge').textContent=x.l+' · '+m(x)+'/5 · печатай';
+  $('tword').textContent=x.ru;
+  $('thint').textContent='Напиши слово по-английски';
+  $('tfeedback').textContent='';
+  updProg();updStar();
+  const inp=$('tinput');inp.value='';inp.readOnly=false;inp.className='search tinput';
+  setTimeout(()=>inp.focus(),60);
+}
+function thint(){
+  if(locked)return;
+  const x=session[si];hinted=true;
+  $('thint').textContent='Подсказка: '+x.en.split('').map((c,i)=>i===0?c:(c===' '?' ':'_')).join(' ');
+  $('tinput').focus();
+}
+function tcheck(){
+  if(locked)return;
+  const x=session[si],inp=$('tinput');
+  const v=inp.value.trim().toLowerCase().replace(/\s+/g,' ');
+  if(!v)return;
+  locked=true;inp.readOnly=true;
+  const ok=v===x.en.toLowerCase();
+  applyResult(x,ok,!hinted);updProg();
+  inp.classList.add(ok?'ok':'bad');
+  $('thint').textContent=ok?(hinted?'Верно, но с подсказкой — слово не засчитано как закреплённое':'Закрепление: '+m(x)+'/5'):'Правильно: '+x.en+' — '+x.ru;
+  $('tfeedback').textContent=ok?'✓ Отлично!':'↻ Ошибка — слово будет повторено.';
+  speak(x.en);
+  timer=setTimeout(advance,ok?1100:2600);
+}
+
+/* ---------- фразы и структуры ---------- */
+const PT=[],PH=[],ST=[];
+(function(){
+  const seenP=new Set();
+  PD.split('\n').forEach(line=>{
+    line=line.trim();if(!line)return;
+    if(line[0]==='@'){const [id,ic,nm,lv]=line.slice(1).split('|');PT.push({id,ic,nm,lv});return}
+    const t=PT[PT.length-1];
+    line.split(';').forEach(p=>{const k=p.indexOf('=');if(k<1)return;const en=p.slice(0,k).trim(),ru=p.slice(k+1).trim();if(!en||!ru||seenP.has(en))return;seenP.add(en);PH.push({en,ru,t:t.id,kind:'p'})});
+  });
+  SD.split('\n').forEach(line=>{
+    line=line.trim();if(!line)return;
+    const [pat,mean,exs]=line.split('|');const id='s'+ST.length,ex=[];
+    exs.split(';').forEach(p=>{const k=p.indexOf('=');if(k<1)return;const en=p.slice(0,k).trim(),ru=p.slice(k+1).trim();if(!en||!ru||seenP.has(en))return;seenP.add(en);const o={en,ru,t:id,kind:'s'};PH.push(o);ex.push(o)});
+    ST.push({id,pat:pat.trim(),mean:mean.trim(),ex});
+  });
+})();
+const mp=x=>S.ph[x.en]||0;
+const STOP=new Set('the and for with that this have from your what does about there would could please will shall just been were they them then than here some much many very'.split(' '));
+const WORDS=[...new Set(PH.flatMap(x=>x.en.split(' ').map(tk=>{const mm=tk.match(/[A-Za-z][A-Za-z'’-]*/);return mm?mm[0].toLowerCase():''}).filter(w=>w.length>=3)))];
+let phv='topics',ps=[],pi=0,pscope=null,pkind='cloze',plocked=false,ptimer=null,pLine=[],pPool=[],pTok=[],pAns='';
+
+function phStat(){
+  const d=PH.filter(x=>mp(x)>=5).length;
+  return `<div style="margin:16px 0"><b>Фразы</b><span style="float:right;color:#9295a3">${d}/${PH.length}</span><div class="progress" style="margin-top:7px"><i style="width:${PH.length?d/PH.length*100:0}%"></i></div></div>`;
+}
+function renderPh(){
+  const inTopic=PT.some(x=>x.id===phv);
+  $('phseg').style.display=inTopic?'none':'flex';
+  document.querySelectorAll('#phseg button').forEach(b=>b.classList.toggle('active',b.dataset.v===(phv==='struct'?'struct':'topics')));
+  let h='';
+  if(phv==='topics'){
+    h+=`<button class="primary" data-act="train" data-type="all">Тренировать все фразы</button><div class="tgrid">`+PT.map(t=>{
+      const l=PH.filter(x=>x.t===t.id),d=l.filter(x=>mp(x)>=5).length;
+      return `<button class="tcard" data-act="topic" data-id="${t.id}"><span class="ti">${t.ic}</span><b>${t.nm}</b><small>${t.lv} · ${d}/${l.length}</small><div class="meter" style="width:100%"><i style="width:${l.length?d/l.length*100:0}%"></i></div></button>`;
+    }).join('')+`</div>`;
+  }else if(phv==='struct'){
+    h+=`<button class="primary" data-act="train" data-type="structs">Тренировать все структуры</button>`+ST.map(s=>
+      `<div class="card scard"><div class="pat">${s.pat}</div><div class="note">${s.mean}</div>`+
+      s.ex.map(e=>`<div class="ex" data-act="say" data-en="${e.en}"><div><b>${e.en}</b><br><small>${e.ru}</small></div><span class="sp">🔊</span></div>`).join('')+
+      `<button class="more" data-act="train" data-type="sid" data-id="${s.id}">Тренировать эту структуру</button></div>`).join('');
+  }else{
+    const t=PT.find(x=>x.id===phv),l=PH.filter(x=>x.t===t.id);
+    h+=`<button class="back" data-act="back">‹ Все темы</button><h2 style="margin:14px 0 8px">${t.ic} ${t.nm}</h2><button class="primary" data-act="train" data-type="topic" data-id="${t.id}">Тренировать тему</button><div class="list">`+
+      l.map(x=>`<div class="row" data-act="say" data-en="${x.en}"><div><b>${x.en}</b><br><small>${x.ru}</small></div><div class="rowr"><small>${mp(x)}/5</small><span class="sp">🔊</span></div></div>`).join('')+`</div>`;
+  }
+  $('phbody').innerHTML=h;
+}
+function phScope(sc){
+  if(sc.type==='all')return PH.filter(x=>x.kind==='p');
+  if(sc.type==='structs')return PH.filter(x=>x.kind==='s');
+  return PH.filter(x=>x.t===sc.id);
+}
+function buildP(sc,avoid){
+  const list=phScope(sc),skip=new Set(avoid.map(w=>w.en));
+  const f=list.filter(w=>!skip.has(w.en));
+  return wsample(f.length>=Math.min(5,list.length)?f:list,10,w=>mp(w)>=5?1:6-mp(w));
+}
+function startPhrases(sc){
+  clearTimeout(ptimer);pscope=sc;ps=buildP(sc,[]);pi=0;
+  if(!ps.length)return;
+  show('pprac');pq();
+}
+function pprog(){
+  const l=phScope(pscope),d=l.filter(w=>mp(w)>=5).length;
+  $('pcount').textContent=d+'/'+l.length;$('pbar').style.width=(l.length?d/l.length*100:0)+'%';
+}
+function mkCloze(x){
+  const toks=x.en.split(' ');
+  const parsed=toks.map(tk=>{const mm=tk.match(/^([^A-Za-z]*)([A-Za-z][A-Za-z'’-]*)(.*)$/);return mm?{pre:mm[1],w:mm[2],post:mm[3]}:{pre:'',w:'',post:tk}});
+  let c=parsed.map((p,i)=>i).filter(i=>parsed[i].w.length>=4&&!STOP.has(parsed[i].w.toLowerCase()));
+  if(!c.length)c=parsed.map((p,i)=>i).filter(i=>parsed[i].w.length>=2);
+  const i=c[Math.floor(Math.random()*c.length)],ans=parsed[i].w;
+  const cap=/^[A-Z]/.test(ans)&&!/^I($|')/.test(ans);
+  const low=x.en.toLowerCase();
+  const al=ans.toLowerCase(),sh=wshape(al);
+  const okw=w=>w!==al&&!low.includes(w)&&!synon(w,al);
+  let pool=WORDS.filter(w=>okw(w)&&wshape(w)===sh&&Math.abs(w.length-ans.length)<=2);
+  if(pool.length<3)pool=WORDS.filter(w=>okw(w)&&wshape(w)===sh);
+  if(pool.length<3)pool=WORDS.filter(okw);
+  const dis=shuffle(pool).slice(0,3).map(w=>cap?w[0].toUpperCase()+w.slice(1):w);
+  const shown=parsed.map((p,j)=>j===i?p.pre+'_____'+p.post:toks[j]).join(' ');
+  return{shown,ans,opts:shuffle([ans,...dis])};
+}
+function pq(){
+  const x=ps[pi];plocked=false;clearTimeout(ptimer);
+  const mm=mp(x);
+  pkind=(mm<2||(mm<4&&Math.random()<.4)||x.en.split(' ').length<3)?'cloze':'build';
+  const tn=x.kind==='s'?'Структура':(PT.find(p=>p.id===x.t)||{}).nm;
+  $('pbadge').textContent=tn+' · '+mm+'/5'+(pkind==='cloze'?' · пропуск':' · собери');
+  $('pfeed').textContent='';
+  pprog();
+  if(pkind==='cloze'){
+    const c=mkCloze(x);pAns=c.ans;
+    $('pmain').textContent=c.shown;$('psub').textContent=x.ru;
+    $('pcloze').style.display='grid';$('pbuild').style.display='none';
+    $('pcloze').innerHTML=c.opts.map(o=>`<button class="answer" data-w="${o}">${o}</button>`).join('');
+    $('pcloze').querySelectorAll('button').forEach(b=>b.onclick=()=>pcAnswer(b,b.dataset.w===pAns,x));
+  }else{
+    $('pmain').textContent=x.ru;$('psub').textContent='Собери фразу из слов';
+    $('pcloze').style.display='none';$('pbuild').style.display='block';
+    pTok=x.en.split(' ');
+    let idx=pTok.map((q,i)=>i);
+    do{idx=shuffle(idx)}while(idx.length>1&&idx.every((v,i)=>v===i));
+    pPool=idx;pLine=[];$('pline').className='buildline';renderBuild();
+  }
+}
+function renderBuild(){
+  $('pline').innerHTML=pLine.map(i=>`<button class="chip" data-i="${i}" data-from="line">${pTok[i]}</button>`).join('');
+  $('ppool').innerHTML=pPool.map(i=>`<button class="chip${pLine.includes(i)?' used':''}" data-i="${i}" data-from="pool">${pTok[i]}</button>`).join('');
+}
+function pcAnswer(btn,ok,x){
+  if(plocked)return;
+  if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();
+  $('pcloze').querySelectorAll('button').forEach(b=>{b.disabled=true});
+  btn.classList.add(ok?'correct':'wrong');
+  if(!ok)$('pcloze').querySelectorAll('button').forEach(b=>{if(b.dataset.w===pAns)b.classList.add('correct')});
+  pdone(ok,x);
+}
+function pbCheck(){
+  if(plocked||pLine.length!==pTok.length)return;
+  const x=ps[pi];
+  const ok=pLine.map(i=>pTok[i]).join(' ').toLowerCase()===x.en.toLowerCase();
+  $('pline').className='buildline '+(ok?'ok':'bad');
+  pdone(ok,x);
+}
+function pdone(ok,x){
+  plocked=true;
+  S.ph[x.en]=ok?Math.min(5,mp(x)+1):Math.max(0,mp(x)-1);
+  tally(ok);save();pprog();
+  $('pmain').textContent=x.en;$('psub').textContent=x.ru;
+  $('pfeed').textContent=ok?'✓ Верно. Скажи фразу вслух 🗣':'↻ Ошибка. Прочитай правильный вариант вслух.';
+  speak(x.en);
+  ptimer=setTimeout(padvance,ok?2000:3500);
+}
+function padvance(){
+  if(pi<ps.length-1)pi++;
+  else{const a=buildP(pscope,ps.slice(-3));if(!a.length){stopP();return}ps=a;pi=0}
+  pq();
+}
+function stopP(){clearTimeout(ptimer);if('speechSynthesis' in window)speechSynthesis.cancel();show('phrases')}
+
+/* ---------- сочетания: два слова — другой смысл ---------- */
+const CL=['A2','B1','B2','C1'];
+const CT={A2:'Базовые сочетания',B1:'Уверенный уровень',B2:'Продвинутые',C1:'Высокий уровень'};
+const CB=[];
+(function(){
+  let lv='A2';const seenC=new Set();
+  CD.split('\n').forEach(line=>{
+    line=line.trim();if(!line)return;
+    if(line[0]==='@'){lv=line.slice(1);return}
+    const k=line.indexOf('=');if(k<1)return;
+    const en=line.slice(0,k).trim(),rest=line.slice(k+1).split('|');
+    const ru=(rest[0]||'').trim(),lit=(rest[1]||'').trim(),ex=(rest[2]||'').trim();
+    if(!en||!ru||seenC.has(en.toLowerCase()))return;
+    seenC.add(en.toLowerCase());CB.push({l:lv,en,ru,lit,ex});
+  });
+})();
+const CBY=new Map(CB.map(w=>[w.en,w]));
+const cm=w=>S.cm[w.en]||0;
+const cpool=l=>CB.filter(w=>w.l===l);
+const cmc=l=>cpool(l).filter(w=>cm(w)>=5).length;
+let cs=[],ci=0,ctimer=null,clock=false;
+
+function cActive(l){
+  S.cact=S.cact||{};
+  const items=cpool(l),before=(S.cact[l]||[]).join('|');
+  let cur=(S.cact[l]||[]).filter(en=>{const w=CBY.get(en);return w&&w.l===l&&cm(w)<5});
+  if(cur.length<ACT){
+    const have=new Set(cur);
+    const k=(w,i)=>cm(w)>0?[0,-cm(w),i]:[1,0,i];
+    const rk=ordRank('c',l,items);
+    const cand=items.map(w=>({w,i:rk.get(w.en)})).filter(x=>cm(x.w)<5&&!have.has(x.w.en));
+    cand.sort((a,b)=>{const p=k(a.w,a.i),q=k(b.w,b.i);return p[0]-q[0]||p[1]-q[1]||p[2]-q[2]});
+    cand.slice(0,ACT-cur.length).forEach(x=>cur.push(x.w.en));
+  }
+  S.cact[l]=cur;
+  if(cur.join('|')!==before)save();
+  return cur.map(en=>CBY.get(en));
+}
+function cStat(){
+  const d=CB.filter(w=>cm(w)>=5).length;
+  return `<div style="margin:16px 0"><b>Сочетания</b><span style="float:right;color:#9295a3">${d}/${CB.length}</span><div class="progress" style="margin-top:7px"><i style="width:${CB.length?d/CB.length*100:0}%"></i></div></div>`;
+}
+let climit=60;
+function setCLevel(l){S.clevel=l;climit=60;save();renderCombo()}
+function renderCombo(){
+  if(!CL.includes(S.clevel))S.clevel='A2';
+  const l=S.clevel,a=cpool(l),d=cmc(l);
+  $('clvl').textContent=l;$('ctitle').textContent=CT[l];
+  $('cprog').style.width=(a.length?d/a.length*100:0)+'%';
+  $('ctxt').textContent=d+' из '+a.length+' изучено · в работе '+cActive(l).length;
+  $('clevels').innerHTML=CL.map(x=>`<button class="${x===l?'active':''}" onclick="setCLevel('${x}')">${x} · ${cpool(x).length}</button>`).join('');
+  const q=$('csearch').value.trim().toLowerCase();
+  const list=q?CB.filter(w=>w.en.toLowerCase().includes(q)||w.ru.toLowerCase().includes(q)||w.lit.toLowerCase().includes(q)):a;
+  $('clist').innerHTML=list.slice(0,climit).map(w=>`<div class="row" data-en="${w.en}"><div><b>${w.en}</b><br><small>${w.ru}</small>${w.lit?`<br><small style="color:#6f7280">буквально: ${w.lit}</small>`:''}</div><div><small>${cm(w)}/5</small><div class="meter"><i style="width:${cm(w)*20}%"></i></div></div></div>`).join('')||'<div class="note">Ничего не найдено</div>';
+  if(list.length>climit)$('clist').insertAdjacentHTML('beforeend',`<button class="more" onclick="climit+=60;renderCombo()">Показать ещё (${list.length-climit})</button>`);
+}
+function cflash(t){$('cflash').textContent=t;setTimeout(()=>{if($('cflash').textContent===t)$('cflash').textContent=''},3500)}
+function cBatch(avoid){
+  const act=cActive(S.clevel),skip=new Set(avoid.map(w=>w.en));
+  const f=act.filter(w=>!skip.has(w.en));
+  return wsample(f.length>=Math.min(5,act.length)?f:act,10,w=>6-cm(w));
+}
+function cProg(){
+  const n=cpool(S.clevel).length,d=cmc(S.clevel);
+  $('ccount').textContent=d+'/'+n;$('cbar').style.width=(n?d/n*100:0)+'%';
+}
+const CSYN=['give up,give in,back down,back out,hold up','carry on,keep on,go on,keep up,drag on','put off,call off,hold back,rule out','find out,figure out,sort out,work out,make out,look into,look up','come back,go back,be back,get back,give back,call back','turn up,show up,pass out,turn out,come out','get by,live on,muddle through,pull through,hold out,get through','fall apart,break down,break up,blow up','set up,kick off,set off,start,take up','take on,take over,take up,pick up','turn down,opt out,back out,rule out','put on,try on,take off','look after,take after,look up to,stand by','come across,run into,get along','cut down,cut back,scale back,play down','sum up,wrap up,hand in','speed up,hurry up,slow down','dig in,eat out,clean up','make up,mix up','phase out,wear out,use up,run down']; 
+const CSMAP=new Map();
+CSYN.forEach((g,i)=>g.split(',').forEach(w=>{const k=w.trim();if(!CSMAP.has(k))CSMAP.set(k,[]);CSMAP.get(k).push(i)}));
+const csyn=(x,y)=>{const p=CSMAP.get(x.en),q=CSMAP.get(y.en);return !!(p&&q&&p.some(i=>q.includes(i)))};
+function cOpts(x,rev){
+  const pre=[];
+  // «буквальный» перевод — ловушка, но не в каждом вопросе, чтобы её нельзя было вычислить
+  if(!rev&&x.lit&&Math.random()<.5){
+    const lit=x.lit.replace(/ \+ /g,' ');
+    if(lit.toLowerCase()!==x.ru.toLowerCase())pre.push({label:lit,en:'__lit'});
+  }
+  return pickOpts(x,rev,CB.filter(y=>y.l===x.l),pre,csyn);
+}
+function cStart(){
+  clearTimeout(ctimer);
+  const a=cBatch([]);
+  if(!a.length){cflash('Все сочетания этого уровня выучены 🎉 Выбери следующий');return}
+  cs=a;ci=0;show('cprac');cq();
+}
+function cq(){
+  const x=cs[ci];clock=false;clearTimeout(ctimer);
+  const rev=cm(x)>=2&&Math.random()<.5;x._r=rev;
+  $('cbadge').textContent=x.l+' · '+cm(x)+'/5'+(rev?' · RU → EN':' · EN → RU');
+  $('cword').textContent=rev?x.ru:x.en;
+  $('chint').textContent=rev?'Выбери английское сочетание':'Что значат эти слова вместе?';
+  $('cfeed').textContent='';
+  cProg();
+  const opts=cOpts(x,rev);
+  $('canswers').innerHTML=opts.map(o=>`<button class="answer" data-en="${o.en}">${o.label}</button>`).join('');
+  $('canswers').querySelectorAll('button').forEach(b=>b.onclick=()=>cAnswer(b,b.dataset.en===x.en,x));
+  if(!rev)speak(x.en);
+}
+function cAnswer(btn,ok,x){
+  if(clock)return;clock=true;
+  if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();
+  $('canswers').querySelectorAll('button').forEach(b=>{b.disabled=true});
+  btn.classList.add(ok?'correct':'wrong');
+  if(!ok)$('canswers').querySelectorAll('button').forEach(b=>{if(b.dataset.en===x.en)b.classList.add('correct')});
+  S.cm[x.en]=ok?Math.min(5,cm(x)+1):Math.max(0,cm(x)-1);
+  tally(ok);save();cProg();
+  $('cword').textContent=x.en;
+  $('chint').textContent=x.lit?'Буквально: '+x.lit+' — а вместе: '+x.ru:x.ru;
+  $('cfeed').textContent=(ok?(cm(x)>=5?'✓ Выучено.':'✓ Верно.'):'↻ Не совсем — оно ещё вернётся.')+(x.ex?'\n«'+x.ex+'»':'');
+  if(x._r)speak(x.en);
+  ctimer=setTimeout(cAdvance,ok?2600:3800);
+}
+function cAdvance(){
+  if(ci<cs.length-1)ci++;
+  else{
+    const a=cBatch(cs.slice(-3));
+    if(!a.length){cStop('Уровень '+S.clevel+' пройден 🎉 Выбери следующий');return}
+    cs=a;ci=0;
+  }
+  cq();
+}
+function cStop(msg){
+  clearTimeout(ctimer);if('speechSynthesis' in window)speechSynthesis.cancel();
+  show('combo');if(msg)cflash(msg);
+}
+
+/* ---------- события ---------- */
+$('start').onclick=()=>startSession('learn');
+$('mReview').onclick=()=>startSession('review');
+$('mMist').onclick=()=>startSession('mistakes');
+$('mFav').onclick=()=>startSession('fav');
+$('mType').onclick=startTyping;
+$('star').onclick=e=>{e.stopPropagation();const x=session[si];if(x){toggleFav(x.en);updStar()}};
+$('tstar').onclick=e=>{e.stopPropagation();const x=session[si];if(x){toggleFav(x.en);updStar()}};
+$('list').onclick=e=>{
+  const b=e.target.closest('button[data-en]');if(!b)return;
+  toggleFav(b.dataset.en);
+  if(lib==='FAV')renderLib();else{const on=!!S.fav[b.dataset.en];b.classList.toggle('on',on);b.textContent=on?'★':'☆'}
+};
+$('back').onclick=stopAll;$('tback').onclick=stopAll;
+$('snd').onclick=toggleSound;$('psnd').onclick=toggleSound;$('csnd').onclick=toggleSound;$('tsnd').onclick=toggleSound;
+$('wc').onclick=()=>{const x=session[si];if(mode!=='type'&&x&&(!x._rev||locked))speak(x.en)};
+$('thintbtn').onclick=thint;$('tcheck').onclick=tcheck;
+$('tinput').onkeydown=e=>{if(e.key==='Enter')tcheck()};
+$('phbody').onclick=e=>{
+  const b=e.target.closest('[data-act]');if(!b)return;
+  const a=b.dataset.act;
+  if(a==='topic'){phv=b.dataset.id;renderPh();window.scrollTo(0,0)}
+  else if(a==='back'){phv='topics';renderPh()}
+  else if(a==='say')speak(b.dataset.en,true);
+  else if(a==='train')startPhrases({type:b.dataset.type,id:b.dataset.id});
+};
+$('phseg').onclick=e=>{const b=e.target.closest('button');if(!b)return;phv=b.dataset.v;renderPh()};
+$('pback').onclick=stopP;
+$('preset').onclick=()=>{if(plocked)return;pLine=[];renderBuild()};
+$('pbuild').onclick=e=>{
+  if(plocked)return;
+  const b=e.target.closest('.chip');if(!b)return;
+  const i=+b.dataset.i;
+  if(b.dataset.from==='pool'){if(!pLine.includes(i))pLine.push(i)}else pLine=pLine.filter(v=>v!==i);
+  renderBuild();
+  if(pLine.length===pTok.length)setTimeout(pbCheck,250);
+};
+$('cgo').onclick=cStart;$('cback').onclick=()=>cStop();
+$('csearch').oninput=()=>{climit=60;renderCombo()};
+$('clist').onclick=e=>{const r=e.target.closest('[data-en]');if(r)speak(r.dataset.en,true)};
+$('search').oninput=()=>{limit=100;renderLib()};
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{clearTimeout(timer);clearTimeout(ptimer);clearTimeout(ctimer);show(b.dataset.s)});
+$('reset').onclick=()=>{if(confirm('Сбросить весь прогресс?')){try{localStorage.removeItem(KEY)}catch(e){}location.reload()}};
+if('speechSynthesis' in window)speechSynthesis.getVoices();
+render();
+</script></body></html>
